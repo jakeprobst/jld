@@ -29,7 +29,7 @@ int jld_database_count_all_entries(database_t*);
 GString* jld_database_get_entry_data(database_t*, entry_t*);
 
 //only writes title and data information
-void jld_database_write_entry_data(database_t*, entry_t*, char*);
+void jld_database_write_entry(database_t*, entry_t*, char*);
 void jld_database_delete_entry(database_t*, entry_t*);
 
 

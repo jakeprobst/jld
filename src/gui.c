@@ -9,7 +9,7 @@ gint _jld_gui_sort_tree_by_pos(GtkTreeModel* model, GtkTreeIter* a, GtkTreeIter*
     int bpos;
     gtk_tree_model_get(model, b, COL_POS, &bpos, -1);
 
-    return apos - bpos;
+    return bpos - apos;
 }
 
 gint _jld_gui_sort_tree_by_date(GtkTreeModel* model, GtkTreeIter* a, GtkTreeIter* b, gpointer param)
@@ -24,7 +24,7 @@ gint _jld_gui_sort_tree_by_date(GtkTreeModel* model, GtkTreeIter* a, GtkTreeIter
     
     gint ret = 0;
     if (g_strcmp0(adate, bdate) == 0) {
-        ret = apos - bpos;
+        ret = bpos - apos;
     }
     else {
         ret = g_strcmp0(adate, bdate);
@@ -153,6 +153,7 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
 
 void _jld_gui_create_context_menus(jld_gui_t* gui)
 {
+    // calendar entry list popup menu
     gui->model_context_menu = gtk_menu_new();
     
     gui->model_menu_up = gtk_menu_item_new_with_label("Move Up");
@@ -167,6 +168,13 @@ void _jld_gui_create_context_menus(jld_gui_t* gui)
     gtk_menu_shell_append(GTK_MENU_SHELL(gui->model_context_menu), gui->model_menu_delete);
     
     gtk_widget_show_all(gui->model_context_menu);
+    
+    // other entry list popup menu
+    /*gui->other_model_context_menu = gtk_menu_new();
+    
+    gtk_menu_shell_append(GTK_MENU_SHELL(gui->other_model_context_menu), gui->model_menu_delete);
+    
+    gtk_widget_show_all(gui->other_model_context_menu);*/
 }
 
 void jld_gui_init(jld_gui_t* gui)

@@ -36,6 +36,7 @@ typedef struct _jld_gui_t {
     GtkWidget* entry;
     
     GtkWidget* model_context_menu;
+    //GtkWidget* other_model_context_menu;
     GtkWidget* model_menu_up;
     GtkWidget* model_menu_down;
     GtkWidget* model_menu_delete;

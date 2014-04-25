@@ -81,12 +81,15 @@ gboolean _jld_database_load_file(database_t* db, char* path)
         split_key_value(str, &key, &value);
         
         if (g_strcmp0(key, "id") == 0) {
-            entry->id = atoi(value);
+            entry->id = atoll(value);
             db->id = MAX(entry->id, db->id);
         }
         else if (g_strcmp0(key, "date") == 0) {
             g_string_assign(entry->date, value);
             sscanf(entry->date->str, "%d-%d-%d", &entry->year, &entry->month, &entry->day);
+        }
+        else if (g_strcmp0(key, "pos") == 0) {
+            entry->pos = atoi(value);
         }
         else if (g_strcmp0(key, "title") == 0) {
             g_string_assign(entry->title, value);
@@ -167,6 +170,7 @@ entry_t* jld_database_create_entry(database_t* db, int year, int month, int day)
     entry->year = year;
     entry->month = month;
     entry->day = day;
+    entry->pos = jld_database_count_entry_by_date(db, year, month, day);
     
     g_string_sprintf(entry->date, "%d-%.2d-%.2d", year, month, day);
     g_string_assign(entry->title, "new entry");
@@ -185,15 +189,13 @@ entry_t* jld_database_create_entry(database_t* db, int year, int month, int day)
     
     GString* output = g_string_new("");
     //g_string_sprintf(output, "%ld\n%d\n%s\n%s\n%s\n", entry->id, entry->pos, entry->date->str, entry->title->str, entry->tags->str);
-    g_string_sprintf(output, "id: %ld\ndate: %s\ntitle: %s\n\n", entry->id, entry->date->str, entry->title->str);
+    g_string_sprintf(output, "id: %ld\ndate: %s\npos: %d\ntitle: %s\n\n", entry->id, entry->date->str, entry->pos, entry->title->str);
     fwrite(output->str, output->len, 1, fd);
     
     g_string_free(output, TRUE);
     fclose(fd);
     
-    
     return entry;
-    //return db->id;
 }
 
 
@@ -220,7 +222,7 @@ GList* jld_database_get_entry_by_date(database_t* db, int year, int month, int d
         if (day != -1 && day != entry->day) {
             return FALSE;
         }
-        elist = g_list_append(elist, entry);        
+        elist = g_list_append(elist, entry);
         return FALSE;
     }
 
@@ -228,6 +230,31 @@ GList* jld_database_get_entry_by_date(database_t* db, int year, int month, int d
     return elist;
 }
 
+
+
+int jld_database_count_entry_by_date(database_t* db, int year, int month, int day)
+{
+    int ecount = 0;
+    
+    gboolean __count_by_date(gpointer id, entry_t* entry, gpointer param)
+    {       
+        if (year != -1 && year != entry->year) {
+            return FALSE;
+        }
+        if (month != -1 && month != entry->month) {
+            return FALSE;
+        }
+        if (day != -1 && day != entry->day) {
+            return FALSE;
+        }
+        ecount++;
+        return FALSE;
+    }
+
+    g_tree_foreach(db->entries, (GTraverseFunc)__count_by_date, NULL);
+    return ecount;
+    
+}
 
 gboolean _jld_database_tree_to_list(gpointer id, gpointer entry, gpointer param)
 {
@@ -277,25 +304,47 @@ GString* jld_database_get_entry_data(database_t* db, entry_t* entry)
     return data;
 }
 
-void jld_database_write_entry_data(database_t* db, entry_t* entry, char* data)
+void jld_database_write_entry(database_t* db, entry_t* entry, char* data)
 {
+    GString* sdata = NULL;
+    if (data == NULL) {
+        sdata = jld_database_get_entry_data(db, entry);
+        data = sdata->str;
+    }
+    
     remove(entry->file_path->str);
     g_string_sprintf(entry->file_path, "%s%s %s.txt", db->entry_path->str, entry->date->str, entry->title->str);
     
     FILE* fd = fopen(entry->file_path->str, "w");
     GString* output = g_string_new("");
     //g_string_sprintf(output, "%ld\n%d\n%s\n%s\n%s\n%s", entry->id, entry->pos, entry->date->str, entry->title->str, entry->tags->str, data);
-    g_string_sprintf(output, "id: %ld\ndate: %s\ntitle: %s\n\n%s", entry->id, entry->date->str, entry->title->str, data);
+    g_string_sprintf(output, "id: %ld\ndate: %s\npos: %d\ntitle: %s\n\n%s", entry->id, entry->date->str, entry->pos, entry->title->str, data);
     fwrite(output->str, output->len, 1, fd);
     
     g_string_free(output, TRUE);
     fclose(fd);
+    if (sdata) {
+        g_string_free(sdata, TRUE);
+    }
 }
 
 void jld_database_delete_entry(database_t* db, entry_t* entry)
 {
     remove(entry->file_path->str);
     g_tree_remove(db->entries, entry);
+    
+    GList* entries = jld_database_get_entry_by_date(db, entry->year, entry->month, entry->day);
+    GList* l;
+    for(l = entries; l != NULL; l = l->next) {
+        entry_t* e = l->data;
+        if (e->pos > entry->pos) {
+            e->pos--;
+            jld_database_write_entry(db, e, NULL);
+        }
+    }
+    
+    g_list_free(entries);
+    
     
     jld_entry_destroy(entry);
     g_free(entry);
