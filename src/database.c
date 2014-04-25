@@ -292,7 +292,14 @@ void jld_database_write_entry_data(database_t* db, entry_t* entry, char* data)
     fclose(fd);
 }
 
-
+void jld_database_delete_entry(database_t* db, entry_t* entry)
+{
+    remove(entry->file_path->str);
+    g_tree_remove(db->entries, entry);
+    
+    jld_entry_destroy(entry);
+    g_free(entry);
+}
 
 
 

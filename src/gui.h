@@ -25,7 +25,6 @@ typedef struct _jld_gui_t {
     GtkWidget* calendar;
     GtkWidget* calendar_entry;
     GtkWidget* add_entry;
-    GtkWidget* del_entry;
     
     GtkWidget* search_bar;
     GtkWidget* search_entry;
@@ -33,9 +32,13 @@ typedef struct _jld_gui_t {
     GtkWidget* all_entry;
     
     GtkWidget* title_label;
-    //GtkWidget* date_label;
     GtkTextBuffer* entry_buffer;
     GtkWidget* entry;
+    
+    GtkWidget* model_context_menu;
+    GtkWidget* model_menu_up;
+    GtkWidget* model_menu_down;
+    GtkWidget* model_menu_delete;
     
     GtkListStore* calendar_model;
     GtkListStore* search_model;

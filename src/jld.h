@@ -10,6 +10,8 @@ typedef struct _jld_t {
     database_t db;
 
     entry_t* current_entry;
+    entry_t* context_menu_entry; // for passing to move and delete
+    
 } jld_t;
 
 

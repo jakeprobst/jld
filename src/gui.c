@@ -75,8 +75,7 @@ void _jld_gui_setup_models(jld_gui_t* gui)
 }
 
 
-
-void jld_gui_init(jld_gui_t* gui)
+void _jld_gui_create_widgets(jld_gui_t* gui)
 {
     gui->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(gui->window), "jounallogdiary");
@@ -96,12 +95,8 @@ void jld_gui_init(jld_gui_t* gui)
     gtk_container_add(GTK_CONTAINER(scroll1), GTK_WIDGET(gui->calendar_entry));
     gtk_box_pack_start(box1, scroll1, TRUE, TRUE, 0);
     
-    GtkBox* box1_1 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
     gui->add_entry = gtk_button_new_from_icon_name("list-add", 0);
-    gtk_box_pack_start(box1_1, gui->add_entry, TRUE, TRUE, 0);
-    gui->del_entry = gtk_button_new_from_icon_name("list-remove", 0);
-    gtk_box_pack_start(box1_1, gui->del_entry, TRUE, TRUE, 0);
-    gtk_box_pack_start(box1, GTK_WIDGET(box1_1), FALSE, FALSE, 0);
+    gtk_box_pack_start(box1, GTK_WIDGET(gui->add_entry), FALSE, FALSE, 0);
     
     GtkWidget* label1 = gtk_label_new("Calendar");
     gtk_notebook_append_page(notebook, GTK_WIDGET(box1), label1);
@@ -151,13 +146,36 @@ void jld_gui_init(jld_gui_t* gui)
     gtk_box_pack_start(box5, GTK_WIDGET(box4), TRUE, TRUE, 0);
     gtk_box_pack_start(box5, GTK_WIDGET(notebook), FALSE, FALSE, 0);
     
-    
-    
     gtk_container_add(GTK_CONTAINER(gui->window), GTK_WIDGET(box5));
     
+    gtk_widget_show_all(gui->window);
+}
+
+void _jld_gui_create_context_menus(jld_gui_t* gui)
+{
+    gui->model_context_menu = gtk_menu_new();
+    
+    gui->model_menu_up = gtk_menu_item_new_with_label("Move Up");
+    gtk_menu_shell_append(GTK_MENU_SHELL(gui->model_context_menu), gui->model_menu_up);
+    
+    gui->model_menu_down = gtk_menu_item_new_with_label("Move Down");
+    gtk_menu_shell_append(GTK_MENU_SHELL(gui->model_context_menu), gui->model_menu_down);
+
+    gtk_menu_shell_append(GTK_MENU_SHELL(gui->model_context_menu), gtk_separator_menu_item_new());
+    
+    gui->model_menu_delete = gtk_menu_item_new_with_label("Delete");
+    gtk_menu_shell_append(GTK_MENU_SHELL(gui->model_context_menu), gui->model_menu_delete);
+    
+    gtk_widget_show_all(gui->model_context_menu);
+}
+
+void jld_gui_init(jld_gui_t* gui)
+{
+    _jld_gui_create_widgets(gui);
+    _jld_gui_create_context_menus(gui);
     _jld_gui_setup_models(gui);
     _jld_gui_connect_signals(gui);
-    gtk_widget_show_all(gui->window);
+    
 }
 
 
