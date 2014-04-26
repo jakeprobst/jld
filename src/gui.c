@@ -232,14 +232,17 @@ gchar* jld_gui_get_entry_text(jld_gui_t* gui)
     GtkTextIter start;
     GtkTextIter end;
     
-    gtk_text_buffer_get_start_iter(jld->gui.entry_buffer, &start);
-    gtk_text_buffer_get_end_iter(jld->gui.entry_buffer, &end);
+    gtk_text_buffer_get_start_iter(gui->entry_buffer, &start);
+    gtk_text_buffer_get_end_iter(gui->entry_buffer, &end);
     
-    return gtk_text_buffer_get_text(jld->gui.entry_buffer, &start, &end, TRUE);
+    return gtk_text_buffer_get_text(gui->entry_buffer, &start, &end, TRUE);
 }
 
 
-
+void jld_gui_set_entry_text(jld_gui_t* gui, gchar* data)
+{
+    gtk_text_buffer_set_text(gui->entry_buffer, data, -1);
+}
 
 
 

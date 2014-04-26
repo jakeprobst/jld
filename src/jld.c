@@ -182,11 +182,11 @@ void _jld_select_entry(GtkTreeSelection* sel, jld_t* jld)
         gtk_tree_model_get(model, &iter, COL_ID, &eid, -1);
         jld->current_entry = jld_database_get_entry(&jld->db, eid);
         
-        jld_gui_set_header(&jld->gui, jld->current_entry->date->str, jld->current_entry->title->str);
-        
         GString* data = jld_database_get_entry_data(&jld->db, jld->current_entry);
         
-        gtk_text_buffer_set_text(jld->gui.entry_buffer, data->str, -1);
+        jld_gui_set_header(&jld->gui, jld->current_entry->date->str, jld->current_entry->title->str);
+        jld_gui_set_entry_text(&jld->gui, data->str);
+        
         g_string_free(data, TRUE);
     }
 }
@@ -266,14 +266,6 @@ void _jld_entry_title_edited(GtkCellRendererText* render, gchar* path, gchar* ne
 gboolean _jld_model_clicked(GtkWidget* treeview, GdkEventButton* event, jld_t* jld)
 {
     if (event->type == GDK_BUTTON_PRESS && event->button == 3) { // right clicked
-        /*GtkMenu* context_menu = NULL;
-        if (treeview == jld->gui.calendar_entry) {
-            context_menu = jld->gui.calendar_model_context_menu;
-        }
-        else {
-            context_menu = jld->gui.other_model_context_menu;
-        }*/
-        
         gtk_menu_popup(GTK_MENU(jld->gui.model_context_menu), NULL, NULL, NULL, NULL,  
                        (event != NULL) ? event->button : 0, gdk_event_get_time((GdkEvent*)event));
             
