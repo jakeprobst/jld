@@ -25,13 +25,8 @@ void _jld_save_entry(jld_t* jld)
 {
     if (jld->current_entry == NULL)
         return;
-    GtkTextIter start;
-    GtkTextIter end;
     
-    gtk_text_buffer_get_start_iter(jld->gui.entry_buffer, &start);
-    gtk_text_buffer_get_end_iter(jld->gui.entry_buffer, &end);
-    
-    gchar* buf = gtk_text_buffer_get_text(jld->gui.entry_buffer, &start, &end, TRUE);    
+    gchar* buf = jld_gui_get_entry_text(&jld->gui);
     
     jld_database_write_entry(&jld->db, jld->current_entry, buf);
     g_free(buf);

@@ -188,7 +188,6 @@ entry_t* jld_database_create_entry(database_t* db, int year, int month, int day)
     FILE* fd = fopen(entry->file_path->str, "w");
     
     GString* output = g_string_new("");
-    //g_string_sprintf(output, "%ld\n%d\n%s\n%s\n%s\n", entry->id, entry->pos, entry->date->str, entry->title->str, entry->tags->str);
     g_string_sprintf(output, "id: %ld\ndate: %s\npos: %d\ntitle: %s\n\n", entry->id, entry->date->str, entry->pos, entry->title->str);
     fwrite(output->str, output->len, 1, fd);
     
@@ -317,7 +316,6 @@ void jld_database_write_entry(database_t* db, entry_t* entry, char* data)
     
     FILE* fd = fopen(entry->file_path->str, "w");
     GString* output = g_string_new("");
-    //g_string_sprintf(output, "%ld\n%d\n%s\n%s\n%s\n%s", entry->id, entry->pos, entry->date->str, entry->title->str, entry->tags->str, data);
     g_string_sprintf(output, "id: %ld\ndate: %s\npos: %d\ntitle: %s\n\n%s", entry->id, entry->date->str, entry->pos, entry->title->str, data);
     fwrite(output->str, output->len, 1, fd);
     
@@ -344,7 +342,6 @@ void jld_database_delete_entry(database_t* db, entry_t* entry)
     }
     
     g_list_free(entries);
-    
     
     jld_entry_destroy(entry);
     g_free(entry);

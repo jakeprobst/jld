@@ -59,7 +59,7 @@ void jld_gui_destroy(jld_gui_t*);
 void jld_gui_add_entry(jld_gui_t*, model_id id, entry_t*);
 void jld_gui_set_header(jld_gui_t*, gchar*, gchar*);
 
-
+gchar* jld_gui_get_entry_text(jld_gui_t*);
 
 
 

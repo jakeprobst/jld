@@ -227,7 +227,16 @@ void jld_gui_set_header(jld_gui_t* gui, gchar* date, gchar* title)
 
 
 
-
+gchar* jld_gui_get_entry_text(jld_gui_t* gui)
+{
+    GtkTextIter start;
+    GtkTextIter end;
+    
+    gtk_text_buffer_get_start_iter(jld->gui.entry_buffer, &start);
+    gtk_text_buffer_get_end_iter(jld->gui.entry_buffer, &end);
+    
+    return gtk_text_buffer_get_text(jld->gui.entry_buffer, &start, &end, TRUE);
+}
 
 
 
