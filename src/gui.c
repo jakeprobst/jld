@@ -1,5 +1,5 @@
 #include "gui.h"
-
+#include "entrytext.h"
 
 
 gint _jld_gui_sort_tree_by_pos(GtkTreeModel* model, GtkTreeIter* a, GtkTreeIter* b, gpointer param)
@@ -40,6 +40,13 @@ gint _jld_gui_sort_tree_by_date(GtkTreeModel* model, GtkTreeIter* a, GtkTreeIter
 void _jld_gui_connect_signals(jld_gui_t* gui)
 {
     g_signal_connect(gui->window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+}
+
+void _jld_gui_add_accelerators(jld_gui_t* gui)
+{
+    
+    
+    //gtk_widget_add_accelerator();
 }
 
 void _jld_gui_setup_models(jld_gui_t* gui)
@@ -134,12 +141,8 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gui->title_label = gtk_label_new("");
     gtk_misc_set_alignment(GTK_MISC(gui->title_label),0,0);
     
-    gui->entry = gtk_text_view_new();
-    gui->entry_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(gui->entry));
     gtk_box_pack_start(box4, gui->title_label, FALSE, TRUE, 0);
-    gtk_box_pack_start(box4, gui->entry, TRUE, TRUE, 0);
-    gtk_widget_set_sensitive(gui->entry, FALSE);
-    
+    gtk_box_pack_start(box4, gui->entry_text.entry, TRUE, TRUE, 0);    
     
     // bundle it all up
     GtkBox* box5 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
@@ -179,17 +182,18 @@ void _jld_gui_create_context_menus(jld_gui_t* gui)
 
 void jld_gui_init(jld_gui_t* gui)
 {
+    jld_entry_text_init(&gui->entry_text);
     _jld_gui_create_widgets(gui);
     _jld_gui_create_context_menus(gui);
     _jld_gui_setup_models(gui);
     _jld_gui_connect_signals(gui);
-    
+    _jld_gui_add_accelerators(gui);
 }
 
 
 void jld_gui_destroy(jld_gui_t* gui)
 {
-
+    jld_entry_text_destroy(&gui->entry_text);
 }
 
 
@@ -229,19 +233,13 @@ void jld_gui_set_header(jld_gui_t* gui, gchar* date, gchar* title)
 
 gchar* jld_gui_get_entry_text(jld_gui_t* gui)
 {
-    GtkTextIter start;
-    GtkTextIter end;
-    
-    gtk_text_buffer_get_start_iter(gui->entry_buffer, &start);
-    gtk_text_buffer_get_end_iter(gui->entry_buffer, &end);
-    
-    return gtk_text_buffer_get_text(gui->entry_buffer, &start, &end, TRUE);
+    return jld_entry_text_get(&gui->entry_text);
 }
 
 
 void jld_gui_set_entry_text(jld_gui_t* gui, gchar* data)
 {
-    gtk_text_buffer_set_text(gui->entry_buffer, data, -1);
+    jld_entry_text_set(&gui->entry_text, data);
 }
 
 

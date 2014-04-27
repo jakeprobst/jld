@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 
 #include "entry.h"
+#include "entrytext.h"
 
 enum {
     COL_DATE,
@@ -32,8 +33,8 @@ typedef struct _jld_gui_t {
     GtkWidget* all_entry;
     
     GtkWidget* title_label;
-    GtkTextBuffer* entry_buffer;
-    GtkWidget* entry;
+    entry_text_t entry_text;
+    
     
     GtkWidget* model_context_menu;
     //GtkWidget* other_model_context_menu;

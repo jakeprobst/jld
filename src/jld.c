@@ -174,7 +174,7 @@ void _jld_select_entry(GtkTreeSelection* sel, jld_t* jld)
     GtkTreeModel* model;
     
     if (gtk_tree_selection_get_selected(sel, &model, &iter)) {
-        gtk_widget_set_sensitive(jld->gui.entry, TRUE);
+        gtk_widget_set_sensitive(jld->gui.entry_text.entry, TRUE);
         
         _jld_save_entry(jld);
         
