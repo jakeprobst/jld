@@ -10,8 +10,6 @@ typedef struct _settings_t {
     GString* data_path;
     GString* entry_path;
     int win_x, win_y, win_w, win_h;
-    
-    
 } settings_t;
 
 

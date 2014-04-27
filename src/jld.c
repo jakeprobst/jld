@@ -330,6 +330,7 @@ void jld_init(jld_t* jld)
 {
     jld_database_init(&jld->db);
     jld_gui_init(&jld->gui);
+    jld_search_init(&jld->search, &jld->gui, &jld->db);
     
     jld->current_entry = NULL;
     _jld_connect_signals(jld);
@@ -343,6 +344,7 @@ void jld_run(jld_t* jld)
 
 void jld_destroy(jld_t* jld)
 {
+    jld_search_destroy(&jld->search);
     jld_gui_destroy(&jld->gui);
     jld_database_destroy(&jld->db);
 }

@@ -113,10 +113,6 @@ void _jld_entry_text_changed(GtkTextBuffer* buffer, entry_text_t* entry_text)
 
 void _jld_entry_text_cursor_moved(GtkTextBuffer* buffer, GParamSpec* spec, entry_text_t* entry)
 {
-    int cursor_pos;
-    g_object_get(buffer, "cursor-position", &cursor_pos, NULL);
-    printf("cursor: %d\n", cursor_pos);
-    
     _jld_entry_text_changed(buffer, entry);
 }
 

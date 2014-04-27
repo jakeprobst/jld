@@ -124,6 +124,10 @@ void _jld_database_load_entries(database_t* db)
             break;
         }
         
+        if (dp->d_name[0] == '.') {
+            continue;
+        }
+        
         GString* fullpath = g_string_new(db->entry_path->str);
         g_string_append(fullpath, dp->d_name);
         _jld_database_load_file(db, fullpath->str);
@@ -252,8 +256,22 @@ int jld_database_count_entry_by_date(database_t* db, int year, int month, int da
 
     g_tree_foreach(db->entries, (GTraverseFunc)__count_by_date, NULL);
     return ecount;
-    
 }
+
+int jld_database_count_all_entries(database_t* db)
+{
+    int ecount = 0;
+    
+    gboolean __count(gpointer id, entry_t* entry, gpointer param)
+    {       
+        ecount++;
+        return FALSE;
+    }
+
+    g_tree_foreach(db->entries, (GTraverseFunc)__count, NULL);
+    return ecount;
+}
+
 
 gboolean _jld_database_tree_to_list(gpointer id, gpointer entry, gpointer param)
 {
@@ -275,6 +293,8 @@ GList* jld_database_get_all_entries(database_t* db)
 GString* jld_database_get_entry_data(database_t* db, entry_t* entry)
 {
     FILE* fd = fopen(entry->file_path->str, "r");
+    if (fd == NULL)
+        return NULL;
     
     while (TRUE) { // check for double line breaks
         int c = fgetc(fd);

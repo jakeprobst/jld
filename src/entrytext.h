@@ -7,17 +7,7 @@
 typedef struct _entry_text_t {
     GtkTextBuffer* entry_buffer;
     GtkWidget* entry;
-    
-    /*GtkTextTag* tag_bold;
-    GtkTextTag* tag_italic;
-    GtkTextTag* tag_underline;
-    GtkTextTag* tag_invisible;
-    GtkTextTag* tag_big1;
-    GtkTextTag* tag_big2;
-    GtkTextTag* tag_big3;*/
-    
-    
-    
+        
 } entry_text_t;
 
 

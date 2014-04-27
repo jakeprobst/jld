@@ -19,7 +19,6 @@ typedef enum _model_id {
     MODEL_ALL
 } model_id;
 
-
 typedef struct _jld_gui_t {
     GtkWidget* window;
     
@@ -35,9 +34,7 @@ typedef struct _jld_gui_t {
     GtkWidget* title_label;
     entry_text_t entry_text;
     
-    
     GtkWidget* model_context_menu;
-    //GtkWidget* other_model_context_menu;
     GtkWidget* model_menu_up;
     GtkWidget* model_menu_down;
     GtkWidget* model_menu_delete;
@@ -45,7 +42,6 @@ typedef struct _jld_gui_t {
     GtkListStore* calendar_model;
     GtkListStore* search_model;
     GtkListStore* all_model;
-    
 } jld_gui_t;
 
 
