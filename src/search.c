@@ -1,5 +1,7 @@
 #include "search.h"
 
+#include <string.h>
+
 #define SEARCHES_PER_STEP 10
 
 
@@ -51,6 +53,10 @@ void _jld_search_activated(GtkSearchEntry* entry, search_t* search)
         g_source_remove(search->search_id);
         jld_search_query_destroy(&search->query);
         gtk_list_store_clear(search->gui->search_model);
+        search->search_id = 0;
+    }
+    if (strlen(gtk_entry_get_text(GTK_ENTRY(entry))) == 0) {
+        return;
     }
     
     search->entries = jld_database_get_all_entries(search->db);
