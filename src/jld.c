@@ -167,28 +167,19 @@ void _jld_move_entry_down(GtkMenuItem* item, jld_t* jld)
 }
 
 
-
-void _jld_select_entry(GtkTreeSelection* sel, jld_t* jld)
+void _jld_select_entry(jld_t* jld, entry_t* entry)
 {
-    GtkTreeIter iter;
-    GtkTreeModel* model;
+    gtk_widget_set_sensitive(jld->gui.entry_text.entry, TRUE);
+        
+    _jld_save_entry(jld);
+    jld->current_entry = entry;
     
-    if (gtk_tree_selection_get_selected(sel, &model, &iter)) {
-        gtk_widget_set_sensitive(jld->gui.entry_text.entry, TRUE);
+    GString* data = jld_database_get_entry_data(&jld->db, jld->current_entry);
+    
+    jld_gui_set_header(&jld->gui, jld->current_entry->date->str, jld->current_entry->title->str);
+    jld_gui_set_entry_text(&jld->gui, data->str);
         
-        _jld_save_entry(jld);
-        
-        entry_id_t eid;
-        gtk_tree_model_get(model, &iter, COL_ID, &eid, -1);
-        jld->current_entry = jld_database_get_entry(&jld->db, eid);
-        
-        GString* data = jld_database_get_entry_data(&jld->db, jld->current_entry);
-        
-        jld_gui_set_header(&jld->gui, jld->current_entry->date->str, jld->current_entry->title->str);
-        jld_gui_set_entry_text(&jld->gui, data->str);
-        
-        g_string_free(data, TRUE);
-    }
+    g_string_free(data, TRUE);
 }
 
 void _jld_change_date(GtkCalendar* cal, jld_t* jld)
@@ -265,7 +256,7 @@ void _jld_entry_title_edited(GtkCellRendererText* render, gchar* path, gchar* ne
 
 gboolean _jld_model_clicked(GtkWidget* treeview, GdkEventButton* event, jld_t* jld)
 {
-    if (event->type == GDK_BUTTON_PRESS && event->button == 3) { // right clicked
+    if (event->type == GDK_BUTTON_PRESS && event->button == 3) { // right clicked, do context menu
         gtk_menu_popup(GTK_MENU(jld->gui.model_context_menu), NULL, NULL, NULL, NULL,  
                        (event != NULL) ? event->button : 0, gdk_event_get_time((GdkEvent*)event));
             
@@ -288,6 +279,23 @@ gboolean _jld_model_clicked(GtkWidget* treeview, GdkEventButton* event, jld_t* j
         }
         return TRUE;
     }
+    if (event->type == GDK_BUTTON_PRESS && event->button == 1) { // left clicked, select entry to show
+        GtkTreePath* path;
+        if (gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(treeview), event->x, event->y, &path, NULL, NULL, NULL)) {
+            
+            GtkTreeModel* model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeview));
+            GtkTreeSelection* sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
+            GtkTreeIter iter;
+            gtk_tree_model_get_iter(model, &iter, path);
+            gtk_tree_selection_select_iter(sel, &iter);
+            
+            entry_id_t eid;
+            gtk_tree_model_get(model, &iter, COL_ID, &eid, -1);
+            entry_t* entry = jld_database_get_entry(&jld->db, eid);
+            _jld_select_entry(jld, entry);
+        }
+        return TRUE;
+    }
     return FALSE;
 }
 
@@ -296,9 +304,6 @@ void _jld_connect_signals(jld_t* jld)
     g_signal_connect(jld->gui.add_entry, "clicked", G_CALLBACK(_jld_create_entry), jld);
     g_signal_connect(jld->gui.calendar, "day-selected", G_CALLBACK(_jld_change_date), jld);
     g_signal_connect(jld->gui.calendar, "month-changed", G_CALLBACK(_jld_change_month), jld);
-    g_signal_connect(gtk_tree_view_get_selection(GTK_TREE_VIEW(jld->gui.calendar_entry)), "changed", G_CALLBACK(_jld_select_entry), jld);
-    g_signal_connect(gtk_tree_view_get_selection(GTK_TREE_VIEW(jld->gui.search_entry)), "changed", G_CALLBACK(_jld_select_entry), jld);
-    g_signal_connect(gtk_tree_view_get_selection(GTK_TREE_VIEW(jld->gui.all_entry)), "changed", G_CALLBACK(_jld_select_entry), jld);
     g_signal_connect(jld->gui.calendar_entry, "button-press-event", G_CALLBACK(_jld_model_clicked), jld);
     g_signal_connect(jld->gui.search_entry, "button-press-event", G_CALLBACK(_jld_model_clicked), jld);
     g_signal_connect(jld->gui.all_entry, "button-press-event", G_CALLBACK(_jld_model_clicked), jld);
