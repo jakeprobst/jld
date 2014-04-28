@@ -284,18 +284,17 @@ gboolean _jld_model_clicked(GtkWidget* treeview, GdkEventButton* event, jld_t* j
         if (gtk_tree_view_get_path_at_pos(GTK_TREE_VIEW(treeview), event->x, event->y, &path, NULL, NULL, NULL)) {
             
             GtkTreeModel* model = gtk_tree_view_get_model(GTK_TREE_VIEW(treeview));
-            GtkTreeSelection* sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
             GtkTreeIter iter;
             gtk_tree_model_get_iter(model, &iter, path);
-            gtk_tree_selection_select_iter(sel, &iter);
             
             entry_id_t eid;
             gtk_tree_model_get(model, &iter, COL_ID, &eid, -1);
             entry_t* entry = jld_database_get_entry(&jld->db, eid);
             _jld_select_entry(jld, entry);
         }
-        return TRUE;
+        return FALSE;
     }
+
     return FALSE;
 }
 
