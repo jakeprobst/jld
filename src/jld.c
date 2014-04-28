@@ -8,18 +8,7 @@
 
 
 
-void _jld_create_entry(GtkWidget* button, jld_t* jld)
-{
-    guint year, month, day;
-    gtk_calendar_get_date(GTK_CALENDAR(jld->gui.calendar), &year, &month, &day);
-    month += 1;
-    
-    entry_t* entry = jld_database_create_entry(&jld->db, year, month, day);
-  
-    jld_gui_add_entry(&jld->gui, MODEL_CALENDAR, entry);
-    jld_gui_add_entry(&jld->gui, MODEL_ALL, entry);
-    gtk_calendar_mark_day(GTK_CALENDAR(jld->gui.calendar), day);
-}
+
 
 void _jld_save_entry(jld_t* jld)
 {
@@ -180,6 +169,27 @@ void _jld_select_entry(jld_t* jld, entry_t* entry)
     jld_gui_set_entry_text(&jld->gui, data->str);
         
     g_string_free(data, TRUE);
+}
+
+void _jld_create_entry(GtkWidget* button, jld_t* jld)
+{
+    guint year, month, day;
+    gtk_calendar_get_date(GTK_CALENDAR(jld->gui.calendar), &year, &month, &day);
+    month += 1;
+    
+    entry_t* entry = jld_database_create_entry(&jld->db, year, month, day);
+  
+    jld_gui_add_entry(&jld->gui, MODEL_CALENDAR, entry);
+    jld_gui_add_entry(&jld->gui, MODEL_ALL, entry);
+    gtk_calendar_mark_day(GTK_CALENDAR(jld->gui.calendar), day);
+    
+    GtkTreeSelection* sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(jld->gui.calendar_entry));
+    GtkTreeIter iter;
+    gtk_tree_model_get_iter_first(GTK_TREE_MODEL(jld->gui.calendar_model), &iter);
+    int n = gtk_tree_model_iter_n_children(GTK_TREE_MODEL(jld->gui.calendar_model), NULL);
+    gtk_tree_model_iter_nth_child(GTK_TREE_MODEL(jld->gui.calendar_model), &iter, NULL, n-1);
+    gtk_tree_selection_select_iter(sel, &iter);
+    _jld_select_entry(jld, entry);
 }
 
 void _jld_change_date(GtkCalendar* cal, jld_t* jld)
