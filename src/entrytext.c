@@ -109,7 +109,7 @@ void _jld_entry_text_changed(GtkTextBuffer* buffer, entry_text_t* entry_text)
                     i = sub_i;
                 }
             }
-            offset_begin = i;
+            //offset_begin = i;
         }
     }
 
