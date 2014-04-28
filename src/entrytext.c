@@ -57,17 +57,18 @@ void _jld_entry_text_changed(GtkTextBuffer* buffer, entry_text_t* entry_text)
     } markup[] = {{"**", "bold"},
                   {"//", "italic"},
                   {"~~", "strike"},
+                  {"++", "h3"},
+                  {"==", "h2"},
+                  {"##", "h1"},
                   {NULL, NULL}};
 
-    
-    gchar* data = jld_entry_text_get(entry_text);
-    int i;
-    for(i = 0; data[i] != '\0'; i++) {
+
+    int _tag_text(gchar* data, int i, int end) {
         int m;
         for(m = 0; markup[m].str != NULL; m++) {
             if (strncmp(markup[m].str, data+i, strlen(markup[m].str)) == 0) {
                 int sub_i;
-                for(sub_i = i+strlen(markup[m].str); data[sub_i] != '\0'; sub_i++) {
+                for(sub_i = i+strlen(markup[m].str); data[sub_i] != '\0' && sub_i < end; sub_i++) {
                     if (strncmp(markup[m].str, data+sub_i, strlen(markup[m].str)) == 0) {
                         break;
                     }
@@ -75,6 +76,8 @@ void _jld_entry_text_changed(GtkTextBuffer* buffer, entry_text_t* entry_text)
                 if (data[sub_i] == '\0') { // no ending tag
                     continue;
                 }
+                _tag_text(data, i+strlen(markup[m].str), sub_i);
+                
                 int start = _normalize_length(i, (guchar*)data);
                 int end = _normalize_length(sub_i, (guchar*)data);
 
@@ -104,6 +107,14 @@ void _jld_entry_text_changed(GtkTextBuffer* buffer, entry_text_t* entry_text)
                 i = sub_i;
             }
         }
+        return i;
+    }
+
+    
+    gchar* data = jld_entry_text_get(entry_text);
+    int i;
+    for(i = 0; data[i] != '\0'; i++) {
+        i = _tag_text(data, i, strlen(data));
     }
         
     g_free(data);
@@ -127,7 +138,9 @@ void jld_entry_text_init(entry_text_t* entry_text)
     gtk_text_buffer_create_tag(entry_text->entry_buffer, "bold", "weight", PANGO_WEIGHT_BOLD, NULL);
     gtk_text_buffer_create_tag(entry_text->entry_buffer, "italic", "style", PANGO_STYLE_ITALIC, NULL);
     gtk_text_buffer_create_tag(entry_text->entry_buffer, "strike", "strikethrough", TRUE, NULL);
-    
+    gtk_text_buffer_create_tag(entry_text->entry_buffer, "h1", "scale", PANGO_SCALE_LARGE, NULL);
+    gtk_text_buffer_create_tag(entry_text->entry_buffer, "h2", "scale", PANGO_SCALE_X_LARGE, NULL);
+    gtk_text_buffer_create_tag(entry_text->entry_buffer, "h3", "scale", PANGO_SCALE_XX_LARGE, NULL);
     
     g_signal_connect(entry_text->entry_buffer, "changed", G_CALLBACK(_jld_entry_text_changed), entry_text);
     g_signal_connect(entry_text->entry_buffer, "notify::cursor-position", G_CALLBACK(_jld_entry_text_cursor_moved), entry_text);

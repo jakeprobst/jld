@@ -29,7 +29,18 @@ void jld_search_query_parse(search_query_t* query, const char* str)
 
 
 
+gboolean jld_search_query_match(search_query_t* query, entry_t* entry, gchar* data)
+{
+    gboolean retval = TRUE;
+    
 
+    if (g_strrstr(data, query->all->str) == NULL) {
+        retval = FALSE;
+    }
+    
+    
+    return retval;
+}
 
 
 

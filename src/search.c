@@ -20,17 +20,10 @@ gboolean _jld_search_search(search_t* search)
         entry_t* entry = (entry_t*)search->entry_index->data;
         GString* text = jld_database_get_entry_data(search->db, entry);
         
-        if (g_strrstr(text->str, search->query.all->str) == NULL) {
-            goto fail;
+        if(jld_search_query_match(&search->query, entry, text->str)) {
+            jld_gui_add_entry(search->gui, MODEL_SEARCH, entry);
         }
         
-        /*if (g_strrstr(entry->title->str, search->query.all->str) == NULL) {
-            goto fail;
-        }*/
-        
-        jld_gui_add_entry(search->gui, MODEL_SEARCH, entry);
-        
-        fail:
         g_string_free(text, TRUE);
         search->entry_count++;
     }
