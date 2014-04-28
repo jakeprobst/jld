@@ -63,60 +63,58 @@ void _jld_entry_text_changed(GtkTextBuffer* buffer, entry_text_t* entry_text)
                   {NULL, NULL}};
 
 
-    int _tag_text(gchar* data, int i, int end) {
-        int m;
-        for(m = 0; markup[m].str != NULL; m++) {
-            if (strncmp(markup[m].str, data+i, strlen(markup[m].str)) == 0) {
-                int sub_i;
-                for(sub_i = i+strlen(markup[m].str); data[sub_i] != '\0' && sub_i < end; sub_i++) {
-                    if (strncmp(markup[m].str, data+sub_i, strlen(markup[m].str)) == 0) {
-                        break;
+    void _tag_text(gchar* data, int offset_begin, int offset_end) {
+        int i;
+        for(i = offset_begin; data[i] != '\0' && i < offset_end; i++) {
+            int m;
+            for(m = 0; markup[m].str != NULL; m++) {
+                if (strncmp(markup[m].str, data+i, strlen(markup[m].str)) == 0) {
+                    int sub_i;
+                    for(sub_i = i+strlen(markup[m].str); data[sub_i] != '\0' && sub_i < offset_end; sub_i++) {
+                        if (strncmp(markup[m].str, data+sub_i, strlen(markup[m].str)) == 0) {
+                            break;
+                        }
                     }
-                }
-                if (data[sub_i] == '\0') { // no ending tag
-                    continue;
-                }
-                _tag_text(data, i+strlen(markup[m].str), sub_i);
-                
-                int start = _normalize_length(i, (guchar*)data);
-                int end = _normalize_length(sub_i, (guchar*)data);
+                    if (data[sub_i] == '\0') { // no ending tag
+                        continue;
+                    }
+                    _tag_text(data, i+strlen(markup[m].str), sub_i);
+                    
+                    int start = _normalize_length(i, (guchar*)data);
+                    int end = _normalize_length(sub_i, (guchar*)data);
 
-                gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_start, start+strlen(markup[m].str));
-                gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_end, end);
-                gtk_text_buffer_apply_tag_by_name(entry_text->entry_buffer, markup[m].tag, &iter_start, &iter_end);
-                
-                int cursor_pos;
-                g_object_get(entry_text->entry_buffer, "cursor-position", &cursor_pos, NULL);
-                
-                char* markup_tag = NULL;
-                if (start <= cursor_pos && cursor_pos <= end+strlen(markup[m].str)) {
-                    markup_tag = "grey-out";
+                    gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_start, start+strlen(markup[m].str));
+                    gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_end, end);
+                    gtk_text_buffer_apply_tag_by_name(entry_text->entry_buffer, markup[m].tag, &iter_start, &iter_end);
+                    
+                    int cursor_pos;
+                    g_object_get(entry_text->entry_buffer, "cursor-position", &cursor_pos, NULL);
+                    
+                    char* markup_tag = NULL;
+                    if (start <= cursor_pos && cursor_pos <= end+strlen(markup[m].str)) {
+                        markup_tag = "grey-out";
+                    }
+                    else {
+                        markup_tag = "invisible";
+                    }
+                    
+                    gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_start, start);
+                    gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_end, start+strlen(markup[m].str));
+                    gtk_text_buffer_apply_tag_by_name(entry_text->entry_buffer, markup_tag, &iter_start, &iter_end);
+                    
+                    gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_start, end);
+                    gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_end, end+strlen(markup[m].str));
+                    gtk_text_buffer_apply_tag_by_name(entry_text->entry_buffer, markup_tag, &iter_start, &iter_end);
+                    
+                    i = sub_i;
                 }
-                else {
-                    markup_tag = "invisible";
-                }
-                
-                gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_start, start);
-                gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_end, start+strlen(markup[m].str));
-                gtk_text_buffer_apply_tag_by_name(entry_text->entry_buffer, markup_tag, &iter_start, &iter_end);
-                
-                gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_start, end);
-                gtk_text_buffer_get_iter_at_offset(entry_text->entry_buffer, &iter_end, end+strlen(markup[m].str));
-                gtk_text_buffer_apply_tag_by_name(entry_text->entry_buffer, markup_tag, &iter_start, &iter_end);
-                
-                i = sub_i;
             }
+            offset_begin = i;
         }
-        return i;
     }
 
-    
     gchar* data = jld_entry_text_get(entry_text);
-    int i;
-    for(i = 0; data[i] != '\0'; i++) {
-        i = _tag_text(data, i, strlen(data));
-    }
-        
+    _tag_text(data, 0, strlen(data));
     g_free(data);
 }
 
