@@ -14,11 +14,11 @@ enum {
     COL_POS
 };
 
-typedef enum _model_id {
+typedef enum _model_id_t {
     MODEL_CALENDAR,
     MODEL_SEARCH,
     MODEL_ALL
-} model_id;
+} model_id_t;
 
 
 
@@ -27,6 +27,8 @@ typedef struct _jld_gui_t {
     
     GtkAccelGroup* accel_group;
     jld_gui_menu_t menu;
+    
+    GtkNotebook* notebook;
     
     GtkWidget* calendar;
     GtkWidget* calendar_entry;
@@ -59,13 +61,13 @@ void jld_gui_init(jld_gui_t*);
 void jld_gui_destroy(jld_gui_t*);
 
 
-void jld_gui_add_entry(jld_gui_t*, model_id id, entry_t*);
+void jld_gui_add_entry(jld_gui_t*, model_id_t id, entry_t*);
 void jld_gui_set_header(jld_gui_t*, gchar*, gchar*);
 
 gchar* jld_gui_get_entry_text(jld_gui_t*);
 void jld_gui_set_entry_text(jld_gui_t*, gchar*);
 
-
+GtkTreeView* jld_gui_get_current_tree_view(jld_gui_t*);
 
 
 

@@ -8,7 +8,26 @@
 
 
 
-
+void _jld_mark_calendar(jld_t* jld)
+{
+    guint year, month, day;
+    gtk_calendar_get_date(GTK_CALENDAR(jld->gui.calendar), &year, &month, &day);
+    
+    GList* elist = jld_database_get_entry_by_date(&jld->db, year, month+1, -1);
+    if (elist == NULL)
+        return;
+    
+    
+    gtk_calendar_clear_marks(GTK_CALENDAR(jld->gui.calendar));
+    GList* l;
+    for(l = elist; l != NULL; l = l->next) {
+        entry_t* entry = l->data;
+        
+        gtk_calendar_mark_day(GTK_CALENDAR(jld->gui.calendar), entry->day);
+    }
+    
+    g_list_free(elist);
+}
 
 void _jld_save_entry(jld_t* jld)
 {
@@ -19,6 +38,11 @@ void _jld_save_entry(jld_t* jld)
     
     jld_database_write_entry(&jld->db, jld->current_entry, buf);
     g_free(buf);
+}
+
+void _jld_save_entry_cb(GtkMenuItem* item, jld_t* jld)
+{
+    _jld_save_entry(jld);
 }
 
 void _jld_load_entries(jld_t* jld)
@@ -68,11 +92,8 @@ void _jld_reload_entry(jld_t* jld, entry_t* entry)
     }
 }
 
-void _jld_delete_entry(GtkMenuItem* item, jld_t* jld)
+void _jld_delete_entry(jld_t* jld, entry_t* entry)
 {
-    if (jld->context_menu_entry == NULL)
-        return;
-    
     GtkTreeIter iter;
     GtkListStore* stores[] = {jld->gui.calendar_model, jld->gui.search_model, jld->gui.all_model, NULL};
     
@@ -85,16 +106,44 @@ void _jld_delete_entry(GtkMenuItem* item, jld_t* jld)
             entry_id_t eid;
             int pos;
             gtk_tree_model_get(GTK_TREE_MODEL(stores[i]), &iter, COL_ID, &eid, COL_POS, &pos, -1);
-            if (eid == jld->context_menu_entry->id) {
+            if (eid == entry->id) {
                 gtk_list_store_remove(stores[i], &iter);
                 break;
             }
         } while (gtk_tree_model_iter_next(GTK_TREE_MODEL(stores[i]), &iter));
     }
-    
-    jld_database_delete_entry(&jld->db, jld->context_menu_entry);
-    if (jld->current_entry == jld->context_menu_entry) {
+    jld_database_delete_entry(&jld->db, entry);
+    if (jld->current_entry == entry) {
         jld->current_entry = NULL;
+        gtk_widget_set_sensitive(jld->gui.entry_text.entry, FALSE);
+    }
+    _jld_mark_calendar(jld);
+}
+
+void _jld_delete_entry_menu(GtkMenuItem* item, jld_t* jld)
+{
+    if (jld->context_menu_entry == NULL)
+        return;
+    
+    _jld_delete_entry(jld, jld->context_menu_entry);
+}
+
+void _jld_delete_entry_selected(GtkMenuItem* item, jld_t* jld)
+{    
+    GtkTreeView* view = jld_gui_get_current_tree_view(&jld->gui);
+    GtkTreeModel* model = gtk_tree_view_get_model(view);
+    GtkTreeSelection* sel = gtk_tree_view_get_selection(view);
+
+    
+    GtkTreeIter iter;
+    if (gtk_tree_selection_get_selected(sel, &model, &iter)) {
+        entry_id_t eid;
+        gtk_tree_model_get(model, &iter, COL_ID, &eid, -1);
+       
+       
+        entry_t* entry = jld_database_get_entry(&jld->db, eid);
+    
+        _jld_delete_entry(jld, entry);
     }
 }
 
@@ -218,18 +267,7 @@ void _jld_change_month(GtkCalendar* cal, jld_t* jld)
     guint year, month, day;
     gtk_calendar_get_date(cal, &year, &month, &day);
     
-    GList* elist = jld_database_get_entry_by_date(&jld->db, year, month+1, -1);
-    if (elist == NULL)
-        return;
-    
-    GList* l;
-    for(l = elist; l != NULL; l = l->next) {
-        entry_t* entry = l->data;
-        
-        gtk_calendar_mark_day(cal, entry->day);
-    }
-    
-    g_list_free(elist);
+    _jld_mark_calendar(jld);
 }
 
 void _jld_entry_title_edited(GtkCellRendererText* render, gchar* path, gchar* new_text, gpointer param)
@@ -308,6 +346,11 @@ gboolean _jld_model_clicked(GtkWidget* treeview, GdkEventButton* event, jld_t* j
     return FALSE;
 }
 
+void _jld_quit(GtkMenuItem* item, jld_t* jld)
+{
+    gtk_main_quit();
+}
+
 void _jld_connect_signals(jld_t* jld)
 {
     g_signal_connect(jld->gui.add_entry, "clicked", G_CALLBACK(_jld_create_entry), jld);
@@ -317,9 +360,16 @@ void _jld_connect_signals(jld_t* jld)
     g_signal_connect(jld->gui.search_entry, "button-press-event", G_CALLBACK(_jld_model_clicked), jld);
     g_signal_connect(jld->gui.all_entry, "button-press-event", G_CALLBACK(_jld_model_clicked), jld);
     
-    g_signal_connect(jld->gui.model_menu_delete, "activate", G_CALLBACK(_jld_delete_entry), jld);
+    g_signal_connect(jld->gui.model_menu_delete, "activate", G_CALLBACK(_jld_delete_entry_menu), jld);
     g_signal_connect(jld->gui.model_menu_up, "activate", G_CALLBACK(_jld_move_entry_up), jld);
     g_signal_connect(jld->gui.model_menu_down, "activate", G_CALLBACK(_jld_move_entry_down), jld);
+    
+    g_signal_connect(jld->gui.menu.new_entry, "activate", G_CALLBACK(_jld_create_entry), jld);
+    g_signal_connect(jld->gui.menu.delete_entry, "activate", G_CALLBACK(_jld_delete_entry_selected), jld);
+    g_signal_connect(jld->gui.menu.save, "activate", G_CALLBACK(_jld_save_entry_cb), jld);
+    g_signal_connect(jld->gui.menu.quit, "activate", G_CALLBACK(_jld_quit), jld);
+    
+    
     
     GtkTreeViewColumn* col;
     GList* render_list;
@@ -338,6 +388,17 @@ void _jld_connect_signals(jld_t* jld)
 }
 
 
+void _jld_add_accelerators(jld_t* jld)
+{
+    gtk_widget_add_accelerator(jld->gui.menu.new_entry, "activate", jld->gui.menu.accel_group, 
+                               GDK_KEY_n, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(jld->gui.menu.delete_entry, "activate", jld->gui.menu.accel_group, 
+                               GDK_KEY_Delete, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(jld->gui.menu.save, "activate", jld->gui.menu.accel_group, 
+                               GDK_KEY_s, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(jld->gui.menu.quit, "activate", jld->gui.menu.accel_group, 
+                               GDK_KEY_q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+}
 
 
 void jld_init(jld_t* jld)
@@ -348,6 +409,7 @@ void jld_init(jld_t* jld)
     
     jld->current_entry = NULL;
     _jld_connect_signals(jld);
+    _jld_add_accelerators(jld);
     _jld_load_entries(jld);
 }
 

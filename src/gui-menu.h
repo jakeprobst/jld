@@ -6,14 +6,19 @@
 
 typedef struct _jld_gui_menu_t {
     GtkWidget* menu_bar;
+    GtkAccelGroup* accel_group;
     
     GtkWidget* new_entry;
+    GtkWidget* delete_entry;
     GtkWidget* save;
     GtkWidget* quit;
     
     GtkWidget* bold;
     GtkWidget* italic;
     GtkWidget* strike;
+    GtkWidget* header1;
+    GtkWidget* header2;
+    GtkWidget* header3;
     
     GtkWidget* show_markup;
     

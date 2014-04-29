@@ -44,7 +44,7 @@ void _jld_gui_connect_signals(jld_gui_t* gui)
 
 void _jld_gui_add_accelerators(jld_gui_t* gui)
 {
-    gui->accel_group = gtk_accel_group_new();
+    
     
     
     
@@ -91,8 +91,9 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gui->window = gtk_window_new(GTK_WINDOW_TOPLEVEL);
     gtk_window_set_title(GTK_WINDOW(gui->window), "jounallogdiary");
     gtk_window_set_default_size(GTK_WINDOW(gui->window), 1000, 600);
+    gtk_window_add_accel_group(GTK_WINDOW(gui->window), gui->menu.accel_group);
     
-    GtkNotebook* notebook = GTK_NOTEBOOK(gtk_notebook_new());
+    gui->notebook = GTK_NOTEBOOK(gtk_notebook_new());
     
     //calendar tab
     GtkBox* box1 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
@@ -110,7 +111,7 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gtk_box_pack_start(box1, GTK_WIDGET(gui->add_entry), FALSE, FALSE, 0);
     
     GtkWidget* label1 = gtk_label_new("Calendar");
-    gtk_notebook_append_page(notebook, GTK_WIDGET(box1), label1);
+    gtk_notebook_append_page(gui->notebook, GTK_WIDGET(box1), label1);
     
     // search tab
     GtkBox* box2 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
@@ -125,7 +126,7 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gtk_box_pack_start(box2, scroll2, TRUE, TRUE, 0);
     
     GtkWidget* label2 = gtk_label_new("Search");
-    gtk_notebook_append_page(notebook, GTK_WIDGET(box2), label2);
+    gtk_notebook_append_page(gui->notebook, GTK_WIDGET(box2), label2);
     
     // all entries tab
     GtkBox* box3 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
@@ -136,7 +137,7 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gtk_box_pack_start(box3, scroll3, TRUE, TRUE, 0);
 
     GtkWidget* label3 = gtk_label_new("All");
-    gtk_notebook_append_page(notebook, GTK_WIDGET(box3), label3);    
+    gtk_notebook_append_page(gui->notebook, GTK_WIDGET(box3), label3);    
     
     
     // text entry 
@@ -151,7 +152,7 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     // bundle it all up
     GtkBox* box5 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
     gtk_box_pack_start(box5, GTK_WIDGET(box4), TRUE, TRUE, 0);
-    gtk_box_pack_start(box5, GTK_WIDGET(notebook), FALSE, FALSE, 0);
+    gtk_box_pack_start(box5, GTK_WIDGET(gui->notebook), FALSE, FALSE, 0);
     
     GtkBox* box6 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     gtk_box_pack_start(box6, gui->menu.menu_bar, FALSE, FALSE, 0);
@@ -200,7 +201,7 @@ void jld_gui_destroy(jld_gui_t* gui)
 }
 
 
-void jld_gui_add_entry(jld_gui_t* gui, model_id id, entry_t* entry)
+void jld_gui_add_entry(jld_gui_t* gui, model_id_t id, entry_t* entry)
 {
     GtkTreeIter iter;
     GtkListStore* model;
@@ -245,7 +246,19 @@ void jld_gui_set_entry_text(jld_gui_t* gui, gchar* data)
     jld_entry_text_set(&gui->entry_text, data);
 }
 
-
+GtkTreeView* jld_gui_get_current_tree_view(jld_gui_t* gui)
+{
+    if (gtk_notebook_get_current_page(gui->notebook) == 0) {
+        return GTK_TREE_VIEW(gui->calendar_entry);
+    }
+    if (gtk_notebook_get_current_page(gui->notebook) == 1) {
+        return GTK_TREE_VIEW(gui->search_entry);
+    }
+    if (gtk_notebook_get_current_page(gui->notebook) == 2) {
+        return GTK_TREE_VIEW(gui->all_entry);
+    }
+    return NULL;
+}
 
 
 
