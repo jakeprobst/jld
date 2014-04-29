@@ -125,7 +125,12 @@ void _jld_entry_text_cursor_moved(GtkTextBuffer* buffer, GParamSpec* spec, entry
     _jld_entry_text_changed(buffer, entry);
 }
 
-void jld_entry_text_init(entry_text_t* entry_text)
+void _jld_entry_text_add_accelerators(entry_text_t* entry_text, jld_gui_menu_t* menu)
+{
+    
+}
+
+void jld_entry_text_init(entry_text_t* entry_text, jld_gui_menu_t* menu)
 {
     entry_text->entry = gtk_text_view_new();
     entry_text->entry_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(entry_text->entry));
@@ -142,6 +147,9 @@ void jld_entry_text_init(entry_text_t* entry_text)
     
     g_signal_connect(entry_text->entry_buffer, "changed", G_CALLBACK(_jld_entry_text_changed), entry_text);
     g_signal_connect(entry_text->entry_buffer, "notify::cursor-position", G_CALLBACK(_jld_entry_text_cursor_moved), entry_text);
+    
+    _jld_entry_text_add_accelerators(entry_text, menu);
+    
 }
 
 void jld_entry_text_destroy(entry_text_t* entry_text)

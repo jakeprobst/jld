@@ -5,6 +5,7 @@
 
 #include "entry.h"
 #include "entrytext.h"
+#include "gui-menu.h"
 
 enum {
     COL_DATE,
@@ -19,8 +20,13 @@ typedef enum _model_id {
     MODEL_ALL
 } model_id;
 
+
+
 typedef struct _jld_gui_t {
     GtkWidget* window;
+    
+    GtkAccelGroup* accel_group;
+    jld_gui_menu_t menu;
     
     GtkWidget* calendar;
     GtkWidget* calendar_entry;

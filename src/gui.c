@@ -44,9 +44,11 @@ void _jld_gui_connect_signals(jld_gui_t* gui)
 
 void _jld_gui_add_accelerators(jld_gui_t* gui)
 {
+    gui->accel_group = gtk_accel_group_new();
     
     
-    //gtk_widget_add_accelerator();
+    
+    
 }
 
 void _jld_gui_setup_models(jld_gui_t* gui)
@@ -80,6 +82,8 @@ void _jld_gui_setup_models(jld_gui_t* gui)
     g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(gui->all_entry), -1, "Title", renderer, "text", COL_TITLE, NULL);
 }
+
+
 
 
 void _jld_gui_create_widgets(jld_gui_t* gui)
@@ -149,10 +153,16 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gtk_box_pack_start(box5, GTK_WIDGET(box4), TRUE, TRUE, 0);
     gtk_box_pack_start(box5, GTK_WIDGET(notebook), FALSE, FALSE, 0);
     
-    gtk_container_add(GTK_CONTAINER(gui->window), GTK_WIDGET(box5));
+    GtkBox* box6 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
+    gtk_box_pack_start(box6, gui->menu.menu_bar, FALSE, FALSE, 0);
+    gtk_box_pack_start(box6, GTK_WIDGET(box5), TRUE, TRUE, 0);
+    
+    gtk_container_add(GTK_CONTAINER(gui->window), GTK_WIDGET(box6));
     
     gtk_widget_show_all(gui->window);
 }
+
+
 
 void _jld_gui_create_context_menus(jld_gui_t* gui)
 {
@@ -174,7 +184,8 @@ void _jld_gui_create_context_menus(jld_gui_t* gui)
 
 void jld_gui_init(jld_gui_t* gui)
 {
-    jld_entry_text_init(&gui->entry_text);
+    jld_gui_menu_init(&gui->menu);
+    jld_entry_text_init(&gui->entry_text, &gui->menu);
     _jld_gui_create_widgets(gui);
     _jld_gui_create_context_menus(gui);
     _jld_gui_setup_models(gui);

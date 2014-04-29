@@ -4,6 +4,8 @@
 
 #include <gtk/gtk.h>
 
+#include "gui-menu.h"
+
 typedef struct _entry_text_t {
     GtkTextBuffer* entry_buffer;
     GtkWidget* entry;
@@ -16,7 +18,7 @@ gchar* jld_entry_text_get(entry_text_t*);
 void jld_entry_text_set(entry_text_t*, gchar*);
 
 
-void jld_entry_text_init(entry_text_t*);
+void jld_entry_text_init(entry_text_t*, jld_gui_menu_t*);
 void jld_entry_text_destroy(entry_text_t*);
 
 
