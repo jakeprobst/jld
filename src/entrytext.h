@@ -9,6 +9,13 @@
 typedef struct _entry_text_t {
     GtkTextBuffer* entry_buffer;
     GtkWidget* entry;
+    
+    gboolean show_markup_cursor;
+    gboolean show_markup;
+    
+    GList* undo_stack;
+    GList* undo_pointer;
+    
         
 } entry_text_t;
 

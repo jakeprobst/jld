@@ -34,6 +34,7 @@ void jld_gui_menu_init(jld_gui_menu_t* menu)
     menu->header1 = gtk_menu_item_new_with_mnemonic("Header _1");
     menu->header2 = gtk_menu_item_new_with_mnemonic("Header _2");
     menu->header3 = gtk_menu_item_new_with_mnemonic("Header _3");
+    menu->show_markup_cursor = gtk_check_menu_item_new_with_label("Show Markup Under Cursor");
     menu->show_markup = gtk_check_menu_item_new_with_label("Show Markup");
     
     gtk_menu_item_set_submenu(GTK_MENU_ITEM(format), format_menu);
@@ -44,6 +45,7 @@ void jld_gui_menu_init(jld_gui_menu_t* menu)
     gtk_menu_shell_append(GTK_MENU_SHELL(format_menu), menu->header2);
     gtk_menu_shell_append(GTK_MENU_SHELL(format_menu), menu->header3);
     gtk_menu_shell_append(GTK_MENU_SHELL(format_menu), gtk_separator_menu_item_new());
+    gtk_menu_shell_append(GTK_MENU_SHELL(format_menu), menu->show_markup_cursor);
     gtk_menu_shell_append(GTK_MENU_SHELL(format_menu), menu->show_markup);
     
     gtk_menu_shell_append(GTK_MENU_SHELL(menu->menu_bar), file);
