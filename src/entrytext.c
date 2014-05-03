@@ -314,7 +314,7 @@ void jld_entry_text_init(entry_text_t* entry_text, jld_gui_menu_t* menu)
     entry_text->entry = gtk_text_view_new();
     entry_text->entry_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(entry_text->entry));
     gtk_widget_set_sensitive(entry_text->entry, FALSE);
-    gtk_text_view_set_wrap_mode(entry->entry, GTK_WRAP_WORD);
+    gtk_text_view_set_wrap_mode(GTK_TEXT_VIEW(entry_text->entry), GTK_WRAP_WORD);
     
     gtk_text_buffer_create_tag(entry_text->entry_buffer, "invisible", "invisible", TRUE, NULL);
     gtk_text_buffer_create_tag(entry_text->entry_buffer, "grey-out", "foreground", "grey", NULL);
