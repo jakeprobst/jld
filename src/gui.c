@@ -37,9 +37,27 @@ gint _jld_gui_sort_tree_by_date(GtkTreeModel* model, GtkTreeIter* a, GtkTreeIter
 }
 
 
+gboolean _jld_gui_title_label_clicked(GtkEventBox* eventbox, GdkEventButton* event, jld_gui_t* gui)
+{
+    gtk_widget_show(gui->title_entry);
+    gtk_widget_hide(gui->title_label);
+    gtk_entry_set_text(GTK_ENTRY(gui->title_entry), gtk_label_get_text(GTK_LABEL(gui->title_label)));
+    gtk_widget_grab_focus(gui->title_entry);
+    return FALSE;
+}
+
+gboolean _jld_gui_title_entry_focus_out(GtkEntry* entry, GdkEventButton* event, jld_gui_t* gui)
+{
+    gtk_widget_show(gui->title_label);
+    gtk_widget_hide(gui->title_entry);
+    return FALSE;
+}
+
 void _jld_gui_connect_signals(jld_gui_t* gui)
 {
     g_signal_connect(gui->window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+    g_signal_connect(gui->title_eventbox, "button-press-event", G_CALLBACK (_jld_gui_title_label_clicked), gui);
+    g_signal_connect(gui->title_entry, "focus-out-event", G_CALLBACK (_jld_gui_title_entry_focus_out), gui);
 }
 
 void _jld_gui_add_accelerators(jld_gui_t* gui)
@@ -61,7 +79,6 @@ void _jld_gui_setup_models(jld_gui_t* gui)
     gtk_tree_sortable_set_sort_column_id(GTK_TREE_SORTABLE(gui->calendar_model), GTK_TREE_SORTABLE_DEFAULT_SORT_COLUMN_ID, GTK_SORT_DESCENDING);
     
     renderer = gtk_cell_renderer_text_new();
-    g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(gui->calendar_entry), -1, "Title", renderer, "text", COL_TITLE, NULL);
     
     gui->search_model = gtk_list_store_new(4, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INT);
@@ -69,7 +86,6 @@ void _jld_gui_setup_models(jld_gui_t* gui)
     renderer = gtk_cell_renderer_text_new();
     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(gui->search_entry), -1, "Date", renderer, "text", COL_DATE, NULL);
     renderer = gtk_cell_renderer_text_new();
-    g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(gui->search_entry), -1, "Title", renderer, "text", COL_TITLE, NULL);
 
     gui->all_model = gtk_list_store_new(4, G_TYPE_STRING, G_TYPE_STRING, G_TYPE_INT, G_TYPE_INT);
@@ -79,7 +95,6 @@ void _jld_gui_setup_models(jld_gui_t* gui)
     renderer = gtk_cell_renderer_text_new();
     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(gui->all_entry), -1, "Date", renderer, "text", COL_DATE, NULL);
     renderer = gtk_cell_renderer_text_new();
-    g_object_set(G_OBJECT(renderer), "editable", TRUE, NULL);
     gtk_tree_view_insert_column_with_attributes(GTK_TREE_VIEW(gui->all_entry), -1, "Title", renderer, "text", COL_TITLE, NULL);
 }
 
@@ -143,10 +158,20 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     // text entry 
     GtkBox* box4 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_VERTICAL, 0));
     
+    GtkBox* box4_1 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
+    gui->date_label = gtk_label_new("");
+    gtk_misc_set_alignment(GTK_MISC(gui->date_label),0,0);
     gui->title_label = gtk_label_new("");
     gtk_misc_set_alignment(GTK_MISC(gui->title_label),0,0);
+    gui->title_entry = gtk_entry_new();
+    gtk_box_pack_start(box4_1, gui->date_label, FALSE, FALSE, 0);
+    gtk_box_pack_start(box4_1, gui->title_label, FALSE, FALSE, 0);
+    gtk_box_pack_start(box4_1, gui->title_entry, TRUE, TRUE, 0);
     
-    gtk_box_pack_start(box4, gui->title_label, FALSE, TRUE, 0);
+    gui->title_eventbox = gtk_event_box_new();
+    gtk_container_add(GTK_CONTAINER(gui->title_eventbox), GTK_WIDGET(box4_1));
+    
+    gtk_box_pack_start(box4, gui->title_eventbox, FALSE, TRUE, 2);
     gtk_box_pack_start(box4, gui->entry_text.entry, TRUE, TRUE, 0);    
     
     // bundle it all up
@@ -161,6 +186,7 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gtk_container_add(GTK_CONTAINER(gui->window), GTK_WIDGET(box6));
     
     gtk_widget_show_all(gui->window);
+    gtk_widget_hide(gui->title_entry);
 }
 
 
@@ -228,8 +254,12 @@ void jld_gui_add_entry(jld_gui_t* gui, model_id_t id, entry_t* entry)
 void jld_gui_set_header(jld_gui_t* gui, gchar* date, gchar* title)
 {
     GString* header = g_string_new("");
-    g_string_sprintf(header, "<span font='15' gravity='west'>%s: %s</span>", date, title);
+    g_string_sprintf(header, "<span font='15' gravity='west'>%s: </span>", date);
+    gtk_label_set_markup(GTK_LABEL(gui->date_label), header->str);
+    
+    g_string_sprintf(header, "<span font='15' gravity='west'>%s</span>", title);
     gtk_label_set_markup(GTK_LABEL(gui->title_label), header->str);
+    
     g_string_free(header, TRUE);
 }
 

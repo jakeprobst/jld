@@ -1,6 +1,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <fcntl.h>
+#include <string.h>
 #include <glib.h>
 
 #include "jld.h"
@@ -120,6 +121,7 @@ void _jld_delete_entry(jld_t* jld, entry_t* entry)
     _jld_mark_calendar(jld);
 }
 
+
 void _jld_delete_entry_menu(GtkMenuItem* item, jld_t* jld)
 {
     if (jld->context_menu_entry == NULL)
@@ -134,18 +136,63 @@ void _jld_delete_entry_selected(GtkMenuItem* item, jld_t* jld)
     GtkTreeModel* model = gtk_tree_view_get_model(view);
     GtkTreeSelection* sel = gtk_tree_view_get_selection(view);
 
-    
     GtkTreeIter iter;
     if (gtk_tree_selection_get_selected(sel, &model, &iter)) {
         entry_id_t eid;
         gtk_tree_model_get(model, &iter, COL_ID, &eid, -1);
-       
-       
+        
         entry_t* entry = jld_database_get_entry(&jld->db, eid);
-    
+        
         _jld_delete_entry(jld, entry);
     }
 }
+
+void _jld_rename_entry_selected(GtkMenuItem* item, jld_t* jld)
+{
+    if (jld->current_entry == NULL) {
+        return;
+    }
+    
+    gtk_widget_show(jld->gui.title_entry);
+    gtk_widget_hide(jld->gui.title_label);
+    gtk_entry_set_text(GTK_ENTRY(jld->gui.title_entry), gtk_label_get_text(GTK_LABEL(jld->gui.title_label)));
+    gtk_widget_grab_focus(jld->gui.title_entry);
+}
+
+void _jld_rename_entry_activate(GtkEntry* entry, jld_t* jld)
+{
+    const gchar* new_text = gtk_entry_get_text(entry);
+    if (strlen(new_text) != 0) {
+        gboolean name_collision = FALSE;
+        GtkTreeIter iter;
+        if (!gtk_tree_model_get_iter_first(GTK_TREE_MODEL(jld->gui.all_model), &iter)) {
+            return;
+        }
+        do {
+            char* date;
+            char* title;
+            gtk_tree_model_get(GTK_TREE_MODEL(jld->gui.all_model), &iter, COL_DATE, &date, COL_TITLE, &title, -1);
+            
+            if (g_strcmp0(jld->current_entry->date->str, date) == 0 && g_strcmp0(title, new_text) == 0) {
+                name_collision = TRUE;
+            }
+            
+            g_free(date);
+            g_free(title);
+        } while (gtk_tree_model_iter_next(GTK_TREE_MODEL(jld->gui.all_model), &iter) && !name_collision);
+        
+        if (!name_collision) {
+            g_string_assign(jld->current_entry->title, new_text);
+        
+            _jld_save_entry(jld);
+            _jld_reload_entry(jld, jld->current_entry);
+        }
+    }
+    
+    gtk_widget_show(jld->gui.title_label);
+    gtk_widget_hide(jld->gui.title_entry);
+}
+
 
 void _jld_move_entry_up(GtkMenuItem* item, jld_t* jld)
 {
@@ -270,38 +317,6 @@ void _jld_change_month(GtkCalendar* cal, jld_t* jld)
     _jld_mark_calendar(jld);
 }
 
-void _jld_entry_title_edited(GtkCellRendererText* render, gchar* path, gchar* new_text, gpointer param)
-{
-    jld_t* jld = (jld_t*)param;
-    
-    gboolean name_collision = FALSE;
-    GtkTreeIter iter;
-    if (!gtk_tree_model_get_iter_first(GTK_TREE_MODEL(jld->gui.all_model), &iter)) {
-        return;
-    }
-    do {
-        char* date;
-        char* title;
-        gtk_tree_model_get(GTK_TREE_MODEL(jld->gui.all_model), &iter, COL_DATE, &date, COL_TITLE, &title, -1);
-        
-        if (g_strcmp0(jld->current_entry->date->str, date) == 0 && g_strcmp0(title, new_text) == 0) {
-            name_collision = TRUE;
-        }
-        
-        g_free(date);
-        g_free(title);
-    } while (gtk_tree_model_iter_next(GTK_TREE_MODEL(jld->gui.all_model), &iter) && !name_collision);
-    
-    if (name_collision) {
-        return;
-    }
-    
-    g_string_assign(jld->current_entry->title, new_text);
-    
-    _jld_save_entry(jld);
-    _jld_reload_entry(jld, jld->current_entry);
-}
-
 gboolean _jld_model_clicked(GtkWidget* treeview, GdkEventButton* event, jld_t* jld)
 {
     if (event->type == GDK_BUTTON_PRESS && event->button == 3) { // right clicked, do context menu
@@ -335,12 +350,15 @@ gboolean _jld_model_clicked(GtkWidget* treeview, GdkEventButton* event, jld_t* j
             GtkTreeIter iter;
             gtk_tree_model_get_iter(model, &iter, path);
             
+            GtkTreeSelection* sel = gtk_tree_view_get_selection(GTK_TREE_VIEW(treeview));
+            gtk_tree_selection_select_iter(sel, &iter);
+            
             entry_id_t eid;
             gtk_tree_model_get(model, &iter, COL_ID, &eid, -1);
             entry_t* entry = jld_database_get_entry(&jld->db, eid);
             _jld_select_entry(jld, entry);
         }
-        return FALSE;
+        return TRUE;
     }
 
     return FALSE;
@@ -360,31 +378,17 @@ void _jld_connect_signals(jld_t* jld)
     g_signal_connect(jld->gui.search_entry, "button-press-event", G_CALLBACK(_jld_model_clicked), jld);
     g_signal_connect(jld->gui.all_entry, "button-press-event", G_CALLBACK(_jld_model_clicked), jld);
     
+    g_signal_connect(jld->gui.title_entry, "activate", G_CALLBACK(_jld_rename_entry_activate), jld);
+    
     g_signal_connect(jld->gui.model_menu_delete, "activate", G_CALLBACK(_jld_delete_entry_menu), jld);
     g_signal_connect(jld->gui.model_menu_up, "activate", G_CALLBACK(_jld_move_entry_up), jld);
     g_signal_connect(jld->gui.model_menu_down, "activate", G_CALLBACK(_jld_move_entry_down), jld);
     
     g_signal_connect(jld->gui.menu.new_entry, "activate", G_CALLBACK(_jld_create_entry), jld);
     g_signal_connect(jld->gui.menu.delete_entry, "activate", G_CALLBACK(_jld_delete_entry_selected), jld);
+    g_signal_connect(jld->gui.menu.rename_entry, "activate", G_CALLBACK(_jld_rename_entry_selected), jld);
     g_signal_connect(jld->gui.menu.save, "activate", G_CALLBACK(_jld_save_entry_cb), jld);
     g_signal_connect(jld->gui.menu.quit, "activate", G_CALLBACK(_jld_quit), jld);
-    
-    
-    
-    GtkTreeViewColumn* col;
-    GList* render_list;
-    col = gtk_tree_view_get_column(GTK_TREE_VIEW(jld->gui.calendar_entry), 0); // first renderer is COL_TITLE
-    render_list = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(col));
-    g_signal_connect(render_list->data, "edited", G_CALLBACK(_jld_entry_title_edited), jld);
-    g_list_free(render_list);
-    col = gtk_tree_view_get_column(GTK_TREE_VIEW(jld->gui.search_entry), 1); // second renderer is COL_TITLE
-    render_list = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(col));
-    g_signal_connect(render_list->data, "edited", G_CALLBACK(_jld_entry_title_edited), jld);
-    g_list_free(render_list);
-    col = gtk_tree_view_get_column(GTK_TREE_VIEW(jld->gui.all_entry), 1); // second renderer is COL_TITLE
-    render_list = gtk_cell_layout_get_cells(GTK_CELL_LAYOUT(col));
-    g_signal_connect(render_list->data, "edited", G_CALLBACK(_jld_entry_title_edited), jld);
-    g_list_free(render_list);
 }
 
 
@@ -394,6 +398,8 @@ void _jld_add_accelerators(jld_t* jld)
                                GDK_KEY_n, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     gtk_widget_add_accelerator(jld->gui.menu.delete_entry, "activate", jld->gui.menu.accel_group, 
                                GDK_KEY_Delete, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(jld->gui.menu.rename_entry, "activate", jld->gui.menu.accel_group, 
+                               GDK_KEY_r, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     gtk_widget_add_accelerator(jld->gui.menu.save, "activate", jld->gui.menu.accel_group, 
                                GDK_KEY_s, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     gtk_widget_add_accelerator(jld->gui.menu.quit, "activate", jld->gui.menu.accel_group, 

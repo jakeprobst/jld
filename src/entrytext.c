@@ -310,7 +310,6 @@ void jld_entry_text_init(entry_text_t* entry_text, jld_gui_menu_t* menu)
 {
     entry_text->show_markup = TRUE;
     
-    
     entry_text->entry = gtk_text_view_new();
     entry_text->entry_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(entry_text->entry));
     gtk_widget_set_sensitive(entry_text->entry, FALSE);

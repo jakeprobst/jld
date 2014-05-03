@@ -39,7 +39,10 @@ typedef struct _jld_gui_t {
     
     GtkWidget* all_entry;
     
+    GtkWidget* date_label;
     GtkWidget* title_label;
+    GtkWidget* title_eventbox;
+    GtkWidget* title_entry;
     entry_text_t entry_text;
     
     GtkWidget* model_context_menu;
