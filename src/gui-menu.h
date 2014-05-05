@@ -11,6 +11,7 @@ typedef struct _jld_gui_menu_t {
     GtkWidget* new_entry;
     GtkWidget* delete_entry;
     GtkWidget* rename_entry;
+    GtkWidget* today;
     GtkWidget* save;
     GtkWidget* quit;
     

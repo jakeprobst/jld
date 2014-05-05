@@ -171,7 +171,7 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gui->title_eventbox = gtk_event_box_new();
     gtk_container_add(GTK_CONTAINER(gui->title_eventbox), GTK_WIDGET(box4_1));
     
-    gtk_box_pack_start(box4, gui->title_eventbox, FALSE, TRUE, 2);
+    gtk_box_pack_start(box4, gui->title_eventbox, FALSE, TRUE, 0);
     gtk_box_pack_start(box4, gui->entry_text.entry, TRUE, TRUE, 0);    
     
     // bundle it all up

@@ -17,6 +17,7 @@ void jld_gui_menu_init(jld_gui_menu_t* menu)
     menu->new_entry = gtk_menu_item_new_with_mnemonic("_New Entry");
     menu->delete_entry = gtk_menu_item_new_with_mnemonic("_Delete Entry");
     menu->rename_entry = gtk_menu_item_new_with_mnemonic("_Rename Entry");
+    menu->today = gtk_menu_item_new_with_mnemonic("_Today");
     menu->save = gtk_menu_item_new_with_mnemonic("_Save");
     menu->quit = gtk_menu_item_new_with_mnemonic("_Quit");
     
@@ -24,6 +25,8 @@ void jld_gui_menu_init(jld_gui_menu_t* menu)
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), menu->new_entry);
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), menu->delete_entry);
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), menu->rename_entry);
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), gtk_separator_menu_item_new());
+    gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), menu->today);
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), menu->save);
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), gtk_separator_menu_item_new());
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), menu->quit);

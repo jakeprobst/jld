@@ -2,6 +2,7 @@
 #include <sys/stat.h>
 #include <fcntl.h>
 #include <string.h>
+#include <time.h>
 #include <glib.h>
 
 #include "jld.h"
@@ -45,6 +46,17 @@ void _jld_save_entry_cb(GtkMenuItem* item, jld_t* jld)
 {
     _jld_save_entry(jld);
 }
+
+void _jld_select_today(GtkMenuItem* item, jld_t* jld)
+{
+    time_t t = time(NULL);
+    struct tm tim;
+    localtime_r(&t, &tim);
+    
+    gtk_calendar_select_month(GTK_CALENDAR(jld->gui.calendar), tim.tm_mon, tim.tm_year+1900);
+    gtk_calendar_select_day(GTK_CALENDAR(jld->gui.calendar), tim.tm_mday);
+}
+
 
 void _jld_load_entries(jld_t* jld)
 {
@@ -387,6 +399,7 @@ void _jld_connect_signals(jld_t* jld)
     g_signal_connect(jld->gui.menu.new_entry, "activate", G_CALLBACK(_jld_create_entry), jld);
     g_signal_connect(jld->gui.menu.delete_entry, "activate", G_CALLBACK(_jld_delete_entry_selected), jld);
     g_signal_connect(jld->gui.menu.rename_entry, "activate", G_CALLBACK(_jld_rename_entry_selected), jld);
+    g_signal_connect(jld->gui.menu.today, "activate", G_CALLBACK(_jld_select_today), jld);
     g_signal_connect(jld->gui.menu.save, "activate", G_CALLBACK(_jld_save_entry_cb), jld);
     g_signal_connect(jld->gui.menu.quit, "activate", G_CALLBACK(_jld_quit), jld);
 }
@@ -400,6 +413,8 @@ void _jld_add_accelerators(jld_t* jld)
                                GDK_KEY_Delete, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     gtk_widget_add_accelerator(jld->gui.menu.rename_entry, "activate", jld->gui.menu.accel_group, 
                                GDK_KEY_r, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(jld->gui.menu.today, "activate", jld->gui.menu.accel_group, 
+                               GDK_KEY_t, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     gtk_widget_add_accelerator(jld->gui.menu.save, "activate", jld->gui.menu.accel_group, 
                                GDK_KEY_s, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     gtk_widget_add_accelerator(jld->gui.menu.quit, "activate", jld->gui.menu.accel_group, 
