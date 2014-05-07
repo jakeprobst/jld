@@ -118,12 +118,7 @@ void _jld_database_load_entries(database_t* db)
     }
     
     struct dirent* dp;
-    while(TRUE) {
-        dp = readdir(dir);
-        if (dp == NULL) {
-            break;
-        }
-        
+    while((dp = readdir(dir)) != NULL) {
         if (dp->d_name[0] == '.') {
             continue;
         }
@@ -158,6 +153,7 @@ void jld_database_destroy(database_t* db)
     GList* l;
     for(l = entries; l != NULL; l = l->next) {
         jld_entry_destroy((entry_t*)l->data);
+        g_free(l->data);
     }
     g_list_free(entries);
     g_tree_destroy(db->entries);
