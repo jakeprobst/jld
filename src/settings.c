@@ -8,9 +8,9 @@ settings_t jld_settings = {0};
 void _jld_init_xdg()
 {
     jld_settings.config_path = g_string_new(g_get_user_config_dir());
-    g_string_append(jld_settings.config_path, "jld/");
+    g_string_append(jld_settings.config_path, "/jld/");
     jld_settings.data_path = g_string_new(g_get_user_data_dir());
-    g_string_append(jld_settings.data_path, "jld/");
+    g_string_append(jld_settings.data_path, "/jld/");
 }
 
 
