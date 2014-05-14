@@ -122,7 +122,7 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gtk_container_add(GTK_CONTAINER(scroll1), GTK_WIDGET(gui->calendar_entry));
     gtk_box_pack_start(box1, scroll1, TRUE, TRUE, 0);
     
-    gui->add_entry = gtk_button_new_from_icon_name("list-add", 0);
+    gui->add_entry = gtk_button_new_from_icon_name("list-add", GTK_ICON_SIZE_MENU);
     gtk_box_pack_start(box1, GTK_WIDGET(gui->add_entry), FALSE, FALSE, 0);
     
     GtkWidget* label1 = gtk_label_new("Calendar");
