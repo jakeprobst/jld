@@ -91,7 +91,7 @@ void _jld_entry_text_changed(GtkTextBuffer* buffer, entry_text_t* entry_text)
                     g_object_get(entry_text->entry_buffer, "cursor-position", &cursor_pos, NULL);
                     
                     char* markup_tag = NULL;
-                    if (entry_text->show_markup || (start <= cursor_pos && cursor_pos <= end+strlen(markup[m].str))) {
+                    if (entry_text->show_markup || (entry_text->show_markup_cursor && start <= cursor_pos && cursor_pos <= end+strlen(markup[m].str))) {
                         markup_tag = "grey-out";
                     }
                     else {
@@ -123,26 +123,6 @@ void _jld_entry_text_cursor_moved(GtkTextBuffer* buffer, GParamSpec* spec, entry
 {
     _jld_entry_text_changed(buffer, entry);
 }
-
-/*gboolean _jld_entry_text_in_style(entry_text_t* entry_text, char* markup, int end)
-{
-    gchar* data = jld_entry_text_get(entry_text);
-    int count = 0;
-    int i;
-    for(i = 0; data[i] != '\0' && i < end; i++) {
-        if (strncmp(markup,data+i,strlen(markup)) == 0) {
-            count += 1;
-        }
-    }
-    
-    g_free(data);
-    
-    // if its even, it means all tags are matched so it is not currently in a tag
-    if (count % 2 == 0) {
-        return FALSE;
-    }
-    return TRUE;
-}*/
 
 int _jld_entry_text_contains_markup(gchar* data, char* markup)
 {
@@ -274,11 +254,22 @@ void _jld_entry_text_header2(GtkMenuItem* item, entry_text_t* entry_text)
 {
     _jld_entry_text_apply_style_to_selection(entry_text, "==");
 }
-
 void _jld_entry_text_header3(GtkMenuItem* item, entry_text_t* entry_text)
 {
     _jld_entry_text_apply_style_to_selection(entry_text, "++");
 }
+
+void _jld_entry_text_show_markup_cursor(GtkCheckMenuItem* item, entry_text_t* entry_text)
+{
+    entry_text->show_markup_cursor = gtk_check_menu_item_get_active(item);
+    _jld_entry_text_changed(entry_text->entry_buffer, entry_text);
+}
+void _jld_entry_text_show_markup(GtkCheckMenuItem* item, entry_text_t* entry_text)
+{
+    entry_text->show_markup = gtk_check_menu_item_get_active(item);
+    _jld_entry_text_changed(entry_text->entry_buffer, entry_text);
+}
+
 void _jld_entry_text_connect_signals(entry_text_t* entry_text, jld_gui_menu_t* menu)
 {
     g_signal_connect(menu->bold, "activate", G_CALLBACK(_jld_entry_text_bold), entry_text);
@@ -287,6 +278,9 @@ void _jld_entry_text_connect_signals(entry_text_t* entry_text, jld_gui_menu_t* m
     g_signal_connect(menu->header1, "activate", G_CALLBACK(_jld_entry_text_header1), entry_text);
     g_signal_connect(menu->header2, "activate", G_CALLBACK(_jld_entry_text_header2), entry_text);
     g_signal_connect(menu->header3, "activate", G_CALLBACK(_jld_entry_text_header3), entry_text);
+    
+    g_signal_connect(menu->show_markup_cursor, "activate", G_CALLBACK(_jld_entry_text_show_markup_cursor), entry_text);
+    g_signal_connect(menu->show_markup, "activate", G_CALLBACK(_jld_entry_text_show_markup), entry_text);
     
 }
 
@@ -304,11 +298,19 @@ void _jld_entry_text_add_accelerators(entry_text_t* entry_text, jld_gui_menu_t* 
                             GDK_KEY_2, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
     gtk_widget_add_accelerator(menu->header3, "activate", menu->accel_group,
                             GDK_KEY_3, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(menu->show_markup_cursor, "activate", menu->accel_group,
+                            GDK_KEY_M, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(menu->show_markup, "activate", menu->accel_group,
+                            GDK_KEY_M, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 }
 
 void jld_entry_text_init(entry_text_t* entry_text, jld_gui_menu_t* menu)
 {
-    entry_text->show_markup = TRUE;
+    entry_text->show_markup_cursor = TRUE;
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menu->show_markup_cursor), TRUE);
+    entry_text->show_markup = FALSE;
+    gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menu->show_markup), FALSE);
+    
     
     entry_text->entry = gtk_text_view_new();
     entry_text->entry_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(entry_text->entry));
