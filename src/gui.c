@@ -55,7 +55,7 @@ gboolean _jld_gui_title_entry_focus_out(GtkEntry* entry, GdkEventButton* event, 
 
 void _jld_gui_connect_signals(jld_gui_t* gui)
 {
-    g_signal_connect(gui->window, "destroy", G_CALLBACK (gtk_main_quit), NULL);
+    g_signal_connect(gui->window, "destroy", G_CALLBACK(gtk_main_quit), NULL);
     g_signal_connect(gui->title_eventbox, "button-press-event", G_CALLBACK (_jld_gui_title_label_clicked), gui);
     g_signal_connect(gui->title_entry, "focus-out-event", G_CALLBACK (_jld_gui_title_entry_focus_out), gui);
 }

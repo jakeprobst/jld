@@ -376,13 +376,21 @@ gboolean _jld_model_clicked(GtkWidget* treeview, GdkEventButton* event, jld_t* j
     return FALSE;
 }
 
-void _jld_quit(GtkMenuItem* item, jld_t* jld)
+gboolean _jld_quit(GtkWidget* w, GdkEvent* event, jld_t* jld)
 {
-    gtk_main_quit();
+    _jld_save_entry(jld);
+    return FALSE;
 }
+
+void _jld_quit_menu(GtkMenuItem* item, jld_t* jld)
+{
+    _jld_quit(NULL, NULL, jld);
+}
+
 
 void _jld_connect_signals(jld_t* jld)
 {
+    g_signal_connect(jld->gui.window, "delete-event", G_CALLBACK (_jld_quit), jld);
     g_signal_connect(jld->gui.add_entry, "clicked", G_CALLBACK(_jld_create_entry), jld);
     g_signal_connect(jld->gui.calendar, "day-selected", G_CALLBACK(_jld_change_date), jld);
     g_signal_connect(jld->gui.calendar, "month-changed", G_CALLBACK(_jld_change_month), jld);
@@ -401,7 +409,7 @@ void _jld_connect_signals(jld_t* jld)
     g_signal_connect(jld->gui.menu.rename_entry, "activate", G_CALLBACK(_jld_rename_entry_selected), jld);
     g_signal_connect(jld->gui.menu.today, "activate", G_CALLBACK(_jld_select_today), jld);
     g_signal_connect(jld->gui.menu.save, "activate", G_CALLBACK(_jld_save_entry_cb), jld);
-    g_signal_connect(jld->gui.menu.quit, "activate", G_CALLBACK(_jld_quit), jld);
+    g_signal_connect(jld->gui.menu.quit, "activate", G_CALLBACK(_jld_quit_menu), jld);
 }
 
 
@@ -420,7 +428,6 @@ void _jld_add_accelerators(jld_t* jld)
     gtk_widget_add_accelerator(jld->gui.menu.quit, "activate", jld->gui.menu.accel_group, 
                                GDK_KEY_q, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
 }
-
 
 void jld_init(jld_t* jld)
 {
