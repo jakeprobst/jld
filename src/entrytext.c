@@ -3,7 +3,6 @@
 #include <string.h>
 
 
-
 // cursor position doesnt take into account utf8 encoding, so the point in the
 // raw data ends up not matching the point in the widget.
 int _normalize_length(int length, guchar* data)
@@ -37,10 +36,7 @@ gchar* jld_entry_text_get(entry_text_t* entry_text)
 }
 
 
-void jld_entry_text_set(entry_text_t* entry_text, gchar* data)
-{    
-    gtk_text_buffer_set_text(entry_text->entry_buffer, data, -1);
-}
+
 
 void _jld_entry_text_changed(GtkTextBuffer* buffer, entry_text_t* entry_text)
 {
@@ -270,8 +266,83 @@ void _jld_entry_text_show_markup(GtkCheckMenuItem* item, entry_text_t* entry_tex
     _jld_entry_text_changed(entry_text->entry_buffer, entry_text);
 }
 
+
+void _jld_entry_text_undo_append(GtkTextBuffer* buffer, entry_text_t* entry_text)
+{
+    if (entry_text->undo_pointer) {
+        if (entry_text->undo_pointer->prev && entry_text->undo_pointer->next) {
+            entry_text->undo_pointer->next = NULL;
+            g_list_free_full(entry_text->undo_pointer->next, g_free);
+        }
+    }
+    
+    
+    
+    entry_text->undo_stack = g_list_append(entry_text->undo_stack, jld_entry_text_get(entry_text));
+    //printf("str at l[0] = '%s'\n", (char*)entry_text->undo_stack->data);
+    entry_text->undo_pointer = g_list_last(entry_text->undo_stack);
+    
+    GList* l;
+    for(l = entry_text->undo_stack; l != NULL; l = l->next) {
+        gchar* str = l->data;
+        
+        if (l == entry_text->undo_pointer) {
+            printf("* %s\n", str);
+        }
+        else {
+            printf("  %s\n", str);
+        }
+    }
+    printf("\n");
+}
+
+void _jld_entry_text_undo_clear(entry_text_t* entry_text)
+{
+    if (entry_text->undo_stack != NULL) {
+        g_list_free_full(entry_text->undo_stack, g_free);
+    }
+    
+    entry_text->undo_stack = entry_text->undo_pointer = NULL;
+}
+
+void _jld_entry_text_undo(GtkMenuItem* item, entry_text_t* entry_text)
+{
+    
+    
+    if (entry_text->undo_pointer && entry_text->undo_pointer->prev) {
+        entry_text->undo_pointer = entry_text->undo_pointer->prev;
+        gtk_text_buffer_set_text(entry_text->entry_buffer, entry_text->undo_pointer->data, -1);
+    }
+    
+    GList* l;
+    for(l = entry_text->undo_stack; l != NULL; l = l->next) {
+        gchar* str = l->data;
+        
+        if (l == entry_text->undo_pointer) {
+            printf("* %s\n", str);
+        }
+        else {
+            printf("  %s\n", str);
+        }
+    }
+    printf("\n");
+}
+
+void _jld_entry_text_redo(GtkMenuItem* item, entry_text_t* entry_text)
+{
+    if (entry_text->undo_pointer && entry_text->undo_pointer->next) {
+        entry_text->undo_pointer = entry_text->undo_pointer->next;
+        gtk_text_buffer_set_text(entry_text->entry_buffer, entry_text->undo_pointer->data, -1);
+    }
+}
+
+
+
 void _jld_entry_text_connect_signals(entry_text_t* entry_text, jld_gui_menu_t* menu)
 {
+    g_signal_connect(menu->undo, "activate", G_CALLBACK(_jld_entry_text_undo), entry_text);
+    g_signal_connect(menu->redo, "activate", G_CALLBACK(_jld_entry_text_redo), entry_text);
+    
     g_signal_connect(menu->bold, "activate", G_CALLBACK(_jld_entry_text_bold), entry_text);
     g_signal_connect(menu->italic, "activate", G_CALLBACK(_jld_entry_text_italic), entry_text);
     g_signal_connect(menu->strike, "activate", G_CALLBACK(_jld_entry_text_strike), entry_text);
@@ -302,7 +373,12 @@ void _jld_entry_text_add_accelerators(entry_text_t* entry_text, jld_gui_menu_t* 
                             GDK_KEY_M, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
     gtk_widget_add_accelerator(menu->show_markup, "activate", menu->accel_group,
                             GDK_KEY_M, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(menu->undo, "activate", menu->accel_group,
+                            GDK_KEY_Z, GDK_CONTROL_MASK, GTK_ACCEL_VISIBLE);
+    gtk_widget_add_accelerator(menu->redo, "activate", menu->accel_group,
+                            GDK_KEY_Z, GDK_CONTROL_MASK|GDK_SHIFT_MASK, GTK_ACCEL_VISIBLE);
 }
+
 
 void jld_entry_text_init(entry_text_t* entry_text, jld_gui_menu_t* menu)
 {
@@ -311,6 +387,7 @@ void jld_entry_text_init(entry_text_t* entry_text, jld_gui_menu_t* menu)
     entry_text->show_markup = FALSE;
     gtk_check_menu_item_set_active(GTK_CHECK_MENU_ITEM(menu->show_markup), FALSE);
     
+    entry_text->undo_stack = entry_text->undo_pointer = NULL;
     
     entry_text->entry = gtk_text_view_new();
     entry_text->entry_buffer = gtk_text_view_get_buffer(GTK_TEXT_VIEW(entry_text->entry));
@@ -326,6 +403,7 @@ void jld_entry_text_init(entry_text_t* entry_text, jld_gui_menu_t* menu)
     gtk_text_buffer_create_tag(entry_text->entry_buffer, "h2", "scale", PANGO_SCALE_X_LARGE, NULL);
     gtk_text_buffer_create_tag(entry_text->entry_buffer, "h3", "scale", PANGO_SCALE_XX_LARGE, NULL);
     
+    g_signal_connect(entry_text->entry_buffer, "end-user-action", G_CALLBACK(_jld_entry_text_undo_append), entry_text);
     g_signal_connect(entry_text->entry_buffer, "changed", G_CALLBACK(_jld_entry_text_changed), entry_text);
     g_signal_connect(entry_text->entry_buffer, "notify::cursor-position", G_CALLBACK(_jld_entry_text_cursor_moved), entry_text);
     
@@ -338,6 +416,10 @@ void jld_entry_text_destroy(entry_text_t* entry_text)
     
 }
 
-
-
+void jld_entry_text_set(entry_text_t* entry_text, gchar* data)
+{
+    _jld_entry_text_undo_clear(entry_text);
+    gtk_text_buffer_set_text(entry_text->entry_buffer, data, -1);
+    _jld_entry_text_undo_append(NULL, entry_text);
+}
 

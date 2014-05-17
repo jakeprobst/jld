@@ -15,6 +15,9 @@ typedef struct _jld_gui_menu_t {
     GtkWidget* save;
     GtkWidget* quit;
     
+    GtkWidget* undo;
+    GtkWidget* redo;
+    
     GtkWidget* bold;
     GtkWidget* italic;
     GtkWidget* strike;

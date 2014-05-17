@@ -31,6 +31,15 @@ void jld_gui_menu_init(jld_gui_menu_t* menu)
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), gtk_separator_menu_item_new());
     gtk_menu_shell_append(GTK_MENU_SHELL(file_menu), menu->quit);
     
+    GtkWidget* edit_menu = gtk_menu_new();
+    GtkWidget* edit = gtk_menu_item_new_with_mnemonic("_Edit");
+    menu->undo = gtk_menu_item_new_with_mnemonic("_Undo");
+    menu->redo = gtk_menu_item_new_with_mnemonic("_Redo");
+    
+    gtk_menu_item_set_submenu(GTK_MENU_ITEM(edit), edit_menu);
+    gtk_menu_shell_append(GTK_MENU_SHELL(edit_menu), menu->undo);
+    gtk_menu_shell_append(GTK_MENU_SHELL(edit_menu), menu->redo);
+    
     GtkWidget* format_menu = gtk_menu_new();
     GtkWidget* format = gtk_menu_item_new_with_mnemonic("Format");
     menu->bold = gtk_menu_item_new_with_mnemonic("_Bold");
@@ -54,5 +63,6 @@ void jld_gui_menu_init(jld_gui_menu_t* menu)
     gtk_menu_shell_append(GTK_MENU_SHELL(format_menu), menu->show_markup);
     
     gtk_menu_shell_append(GTK_MENU_SHELL(menu->menu_bar), file);
+    gtk_menu_shell_append(GTK_MENU_SHELL(menu->menu_bar), edit);
     gtk_menu_shell_append(GTK_MENU_SHELL(menu->menu_bar), format);
 }
