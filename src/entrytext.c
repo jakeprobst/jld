@@ -276,24 +276,8 @@ void _jld_entry_text_undo_append(GtkTextBuffer* buffer, entry_text_t* entry_text
         }
     }
     
-    
-    
     entry_text->undo_stack = g_list_append(entry_text->undo_stack, jld_entry_text_get(entry_text));
-    //printf("str at l[0] = '%s'\n", (char*)entry_text->undo_stack->data);
     entry_text->undo_pointer = g_list_last(entry_text->undo_stack);
-    
-    GList* l;
-    for(l = entry_text->undo_stack; l != NULL; l = l->next) {
-        gchar* str = l->data;
-        
-        if (l == entry_text->undo_pointer) {
-            printf("* %s\n", str);
-        }
-        else {
-            printf("  %s\n", str);
-        }
-    }
-    printf("\n");
 }
 
 void _jld_entry_text_undo_clear(entry_text_t* entry_text)
@@ -313,19 +297,6 @@ void _jld_entry_text_undo(GtkMenuItem* item, entry_text_t* entry_text)
         entry_text->undo_pointer = entry_text->undo_pointer->prev;
         gtk_text_buffer_set_text(entry_text->entry_buffer, entry_text->undo_pointer->data, -1);
     }
-    
-    GList* l;
-    for(l = entry_text->undo_stack; l != NULL; l = l->next) {
-        gchar* str = l->data;
-        
-        if (l == entry_text->undo_pointer) {
-            printf("* %s\n", str);
-        }
-        else {
-            printf("  %s\n", str);
-        }
-    }
-    printf("\n");
 }
 
 void _jld_entry_text_redo(GtkMenuItem* item, entry_text_t* entry_text)
