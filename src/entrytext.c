@@ -291,8 +291,6 @@ void _jld_entry_text_undo_clear(entry_text_t* entry_text)
 
 void _jld_entry_text_undo(GtkMenuItem* item, entry_text_t* entry_text)
 {
-    
-    
     if (entry_text->undo_pointer && entry_text->undo_pointer->prev) {
         entry_text->undo_pointer = entry_text->undo_pointer->prev;
         gtk_text_buffer_set_text(entry_text->entry_buffer, entry_text->undo_pointer->data, -1);
@@ -306,7 +304,6 @@ void _jld_entry_text_redo(GtkMenuItem* item, entry_text_t* entry_text)
         gtk_text_buffer_set_text(entry_text->entry_buffer, entry_text->undo_pointer->data, -1);
     }
 }
-
 
 
 void _jld_entry_text_connect_signals(entry_text_t* entry_text, jld_gui_menu_t* menu)
