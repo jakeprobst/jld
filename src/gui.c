@@ -172,7 +172,10 @@ void _jld_gui_create_widgets(jld_gui_t* gui)
     gtk_container_add(GTK_CONTAINER(gui->title_eventbox), GTK_WIDGET(box4_1));
     
     gtk_box_pack_start(box4, gui->title_eventbox, FALSE, TRUE, 0);
-    gtk_box_pack_start(box4, gui->entry_text.entry, TRUE, TRUE, 0);    
+
+    GtkScrolledWindow* entry_scroll = GTK_SCROLLED_WINDOW(gtk_scrolled_window_new(NULL, NULL));
+    gtk_container_add(GTK_CONTAINER(entry_scroll), gui->entry_text.entry);
+    gtk_box_pack_start(box4, GTK_WIDGET(entry_scroll), TRUE, TRUE, 0);
     
     // bundle it all up
     GtkBox* box5 = GTK_BOX(gtk_box_new(GTK_ORIENTATION_HORIZONTAL, 0));
